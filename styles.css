@@ -677,6 +677,18 @@ main {
   .form-row-2 {
     grid-template-columns: 1fr;
   }
+  
+  .form-section {
+    padding: 3rem 1.5rem;
+  }
+  
+  .form-header h2 {
+    font-size: 1.75rem;
+  }
+  
+  .contact-form input {
+    padding: 0.9rem 1rem;
+  }
 }
 
 .site-footer {
@@ -964,22 +976,259 @@ main {
 }
 
 @media (max-width: 768px) {
+  /* Header optimizado para móvil */
   .site-header {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: row;
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
   }
 
-  .hero-media {
-    min-height: 320px;
+  .brand img {
+    height: 50px;
   }
 
+  .nav-links {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a,
+  .link-btn {
+    font-size: 0.85rem;
+    padding: 0.2rem 0;
+  }
+
+  /* Main content spacing */
   main {
-    padding: 4rem 1.5rem;
+    padding: 2rem 1rem 4rem;
+    gap: 3rem;
   }
 
+  /* Hero optimizado */
+  .hero {
+    min-height: 480px;
+    border-radius: 24px;
+  }
+
+  .hero-inner {
+    padding: 2rem 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .hero-copy h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .hero-copy p {
+    font-size: 1rem;
+  }
+
+  .hero-highlights {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .hero-highlights div {
+    padding: 0.85rem;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .hero-ctas .btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .hero-ticket {
+    width: 100%;
+    padding: 1.25rem;
+  }
+
+  /* Section headers */
+  .section-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .section.alt {
+    padding: 2rem 1.25rem;
+    border-radius: 20px;
+  }
+
+  .trust-strip {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .trust-strip strong {
+    font-size: 1.5rem;
+  }
+
+  .info-panel {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .info-card {
+    padding: 1.5rem;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+    min-width: auto;
+    width: 100%;
+  }
+
+  .btn-large {
+    padding: 1rem 1.75rem;
+    font-size: 1rem;
+  }
+
+  /* Cards y grids */
+  .benefit-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .authority-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .quote-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .process-timeline {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .process-step {
+    width: 100%;
+    padding-left: 0;
+    padding-top: 0;
+    border-left: none;
+    border-top: 2px solid var(--soft-gray);
+  }
+
+  .process-step::before {
+    left: 0;
+    top: -12px;
+  }
+
+  /* Contact section */
+  .contact-panel {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .contact-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .contact-actions .btn {
+    width: 100%;
+  }
+
+  .contact-meta {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  /* FAQ */
+  .faq-columns {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .site-footer {
+    padding: 3rem 1.5rem 1.5rem;
+    gap: 2rem;
+  }
+
+  .footer-social {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .footer-social a {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Floating WhatsApp button */
   .floating-wa {
-    width: calc(100% - 3rem);
-    right: 1.5rem;
+    width: calc(100% - 2rem);
+    right: 1rem;
+    left: 1rem;
+    bottom: 1rem;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  /* Modal */
+  .modal-card {
+    width: calc(100% - 2rem);
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  /* Formulario */
+  .form-container {
+    padding: 2rem 1.25rem;
+    border-radius: 24px;
+  }
+
+  .form-header {
+    margin-bottom: 2rem;
+  }
+
+  .form-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-header p {
+    font-size: 0.95rem;
+  }
+
+  .contact-form {
+    gap: 1.25rem;
+  }
+
+  .contact-form input {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  /* Badge y eyebrow */
+  .badge {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
   }
 }
 
