@@ -191,9 +191,59 @@ const initAnimations = () => {
   document.querySelectorAll(".fade-up").forEach((section) => observer.observe(section));
 };
 
+const initMobileMenu = () => {
+  const menuToggle = document.getElementById("menu-toggle");
+  const mobileMenu = document.getElementById("mobile-menu");
+  const overlay = document.getElementById("mobile-menu-overlay");
+  
+  if (!menuToggle || !mobileMenu) return;
+
+  const toggleMenu = () => {
+    const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
+    menuToggle.setAttribute("aria-expanded", String(!isOpen));
+    mobileMenu.setAttribute("aria-hidden", String(isOpen));
+    if (overlay) {
+      overlay.classList.toggle("active", !isOpen);
+    }
+    document.body.style.overflow = isOpen ? "" : "hidden";
+  };
+
+  const closeMenu = () => {
+    menuToggle.setAttribute("aria-expanded", "false");
+    mobileMenu.setAttribute("aria-hidden", "true");
+    if (overlay) {
+      overlay.classList.remove("active");
+    }
+    document.body.style.overflow = "";
+  };
+
+  menuToggle.addEventListener("click", toggleMenu);
+
+  // Cerrar menú al hacer clic en el overlay
+  if (overlay) {
+    overlay.addEventListener("click", closeMenu);
+  }
+
+  // Cerrar menú al hacer clic en un enlace
+  mobileMenu.querySelectorAll("a, button").forEach((link) => {
+    link.addEventListener("click", () => {
+      // Pequeño delay para permitir la navegación
+      setTimeout(closeMenu, 100);
+    });
+  });
+
+  // Cerrar menú con ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && menuToggle.getAttribute("aria-expanded") === "true") {
+      closeMenu();
+    }
+  });
+};
+
 updateWhatsappLinks();
 initModal();
 initForm();
 initYear();
 initAnimations();
+initMobileMenu();
 
