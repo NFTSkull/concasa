@@ -393,6 +393,58 @@
           </article>
         </div>
       </section>
+
+      <section class="form-section fade-up" id="formulario">
+        <div class="form-container">
+          <div class="form-header">
+            <p class="eyebrow">Inicia tu proceso</p>
+            <h2>Revisa si tienes dinero disponible</h2>
+            <p>Completa el formulario y te contactaremos por WhatsApp para validar tu saldo sin costo.</p>
+          </div>
+          <form class="contact-form" id="page-form">
+            <input type="hidden" name="origin" value="formulario-pagina" />
+            <div class="form-row">
+              <label>
+                <span>Nombre completo</span>
+                <input type="text" name="fullName" required minlength="3" placeholder="Ej: Juan Pérez García" />
+                <span class="error" data-error-for="fullName"></span>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Número de afiliación IMSS</span>
+                <input type="text" name="nss" required inputmode="numeric" placeholder="Ej: 12345678901" />
+                <span class="error" data-error-for="nss"></span>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Fecha de nacimiento</span>
+                <input type="text" name="birthDate" required placeholder="DD/MM/AAAA" />
+                <span class="error" data-error-for="birthDate"></span>
+              </label>
+            </div>
+            <div class="form-row form-row-2">
+              <label>
+                <span>Teléfono</span>
+                <input type="tel" name="phone" required placeholder="Ej: 81 1234 5678" />
+                <span class="error" data-error-for="phone"></span>
+              </label>
+              <label>
+                <span>WhatsApp</span>
+                <input type="tel" name="whatsapp" required placeholder="Ej: 81 1234 5678" />
+                <span class="error" data-error-for="whatsapp"></span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large">
+              Revisar si tengo dinero
+            </button>
+            <p class="form-privacy">
+              Al enviar este formulario, aceptas que nos comuniquemos contigo por WhatsApp. Tus datos son confidenciales y solo se usan para validar tu Subcuenta de Vivienda.
+            </p>
+          </form>
+        </div>
+      </section>
     </main>
 
     <footer class="site-footer">

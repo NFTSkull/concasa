@@ -557,6 +557,128 @@ main {
   font-weight: 600;
 }
 
+.form-section {
+  background: linear-gradient(135deg, rgba(11, 163, 96, 0.05), rgba(15, 27, 27, 0.02));
+  padding: 5rem clamp(1.5rem, 4vw, 8rem);
+  border-top: 1px solid var(--soft-gray);
+}
+
+.form-container {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--white);
+  border-radius: 32px;
+  padding: 3.5rem clamp(2rem, 4vw, 4rem);
+  box-shadow: 0 30px 80px rgba(15, 27, 27, 0.12);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.form-header h2 {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  margin: 0.75rem 0 1rem;
+}
+
+.form-header p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.contact-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contact-form label span {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--black);
+}
+
+.contact-form input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--soft-gray);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: var(--white);
+  color: var(--black);
+}
+
+.contact-form input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(11, 163, 96, 0.1);
+}
+
+.contact-form input::placeholder {
+  color: rgba(15, 27, 27, 0.4);
+}
+
+.contact-form .error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: none;
+}
+
+.contact-form .error:not(:empty) {
+  display: block;
+}
+
+.contact-form input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.btn-large {
+  padding: 1.15rem 2rem;
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+}
+
+.form-privacy {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    padding: 2.5rem 1.5rem;
+  }
+  
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .site-footer {
   background: #050909;
   color: var(--white);

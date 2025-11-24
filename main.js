@@ -7,6 +7,7 @@ const modalTitle = document.getElementById("modal-title");
 const openModalButtons = document.querySelectorAll("[data-open-modal]");
 const closeModalButton = document.querySelector("[data-close-modal]");
 const form = document.getElementById("lead-form");
+const pageForm = document.getElementById("page-form");
 const originInput = document.getElementById("cta-origin");
 const currentYear = document.getElementById("current-year");
 const actionLog = [];
@@ -35,18 +36,25 @@ const setModalOrigin = (origin) => {
   }
 };
 
-const showError = (field, message) => {
-  const errorSpan = document.querySelector(`[data-error-for="${field}"]`);
+const showError = (field, message, formElement) => {
+  const errorSpan = formElement.querySelector(`[data-error-for="${field}"]`);
   if (errorSpan) {
     errorSpan.textContent = message;
+    const input = formElement.querySelector(`input[name="${field}"]`);
+    if (input) {
+      input.setAttribute("aria-invalid", "true");
+    }
   }
 };
 
-const clearErrors = () => {
-  document.querySelectorAll(".error").forEach((error) => (error.textContent = ""));
+const clearErrors = (formElement) => {
+  formElement.querySelectorAll(".error").forEach((error) => (error.textContent = ""));
+  formElement.querySelectorAll("input[aria-invalid]").forEach((input) => {
+    input.removeAttribute("aria-invalid");
+  });
 };
 
-const validateForm = (data) => {
+const validateForm = (data, formElement) => {
   let isValid = true;
   const fullName = data.get("fullName")?.trim() ?? "";
   const nss = data.get("nss")?.trim() ?? "";
@@ -55,23 +63,23 @@ const validateForm = (data) => {
   const whatsapp = data.get("whatsapp")?.trim() ?? "";
 
   if (fullName.length < 3) {
-    showError("fullName", "Ingresa tu nombre completo.");
+    showError("fullName", "Ingresa tu nombre completo.", formElement);
     isValid = false;
   }
   if (nss.length < 10 || !/^\d+$/.test(nss)) {
-    showError("nss", "Ingresa tu número de afiliación (solo números).");
+    showError("nss", "Ingresa tu número de afiliación (solo números).", formElement);
     isValid = false;
   }
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(birthDate)) {
-    showError("birthDate", "Formato DD/MM/AAAA.");
+    showError("birthDate", "Formato DD/MM/AAAA.", formElement);
     isValid = false;
   }
   if (phone.length < 10) {
-    showError("phone", "Incluye lada a 10 dígitos.");
+    showError("phone", "Incluye lada a 10 dígitos.", formElement);
     isValid = false;
   }
   if (whatsapp.length < 10) {
-    showError("whatsapp", "Tu WhatsApp debe tener 10 dígitos.");
+    showError("whatsapp", "Tu WhatsApp debe tener 10 dígitos.", formElement);
     isValid = false;
   }
 
@@ -95,9 +103,10 @@ const logLeadAction = (entry) => {
 
 const handleSubmit = (event) => {
   event.preventDefault();
-  clearErrors();
-  const formData = new FormData(form);
-  const validation = validateForm(formData);
+  const formElement = event.target;
+  clearErrors(formElement);
+  const formData = new FormData(formElement);
+  const validation = validateForm(formData, formElement);
   if (!validation.isValid) return;
 
   const message = [
@@ -120,8 +129,13 @@ const handleSubmit = (event) => {
   });
 
   window.open(withWhatsappUrl(message), "_blank", "noopener,noreferrer");
-  form.reset();
-  toggleModal(false);
+  formElement.reset();
+  
+  if (formElement === form) {
+    toggleModal(false);
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 };
 
 const initModal = () => {
@@ -158,6 +172,7 @@ const initYear = () => {
 
 const initForm = () => {
   form?.addEventListener("submit", handleSubmit);
+  pageForm?.addEventListener("submit", handleSubmit);
 };
 
 const initAnimations = () => {
