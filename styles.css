@@ -71,11 +71,10 @@ main {
   gap: 0.85rem;
 }
 
-.logo-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, var(--green), #15c07a);
+.brand img {
+  height: 42px;
+  width: auto;
+  display: block;
 }
 
 .nav-links {
