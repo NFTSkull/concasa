@@ -19,10 +19,19 @@
   </head>
   <body>
     <header class="site-header">
-      <div>
-        <p class="eyebrow">ConCasa</p>
-        <strong>Soluciones Inmobiliarias</strong>
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <div>
+          <p class="eyebrow">ConCasa</p>
+          <strong>Soluciones Inmobiliarias</strong>
+        </div>
       </div>
+      <nav class="nav-links">
+        <a href="#beneficios">Beneficios</a>
+        <a href="#proceso">Proceso</a>
+        <a href="#faq">FAQ</a>
+        <button type="button" class="link-btn" data-open-modal="header">Revisar saldo</button>
+      </nav>
       <a class="btn btn-outline" data-whatsapp-link target="_blank" rel="noreferrer">
         Hablar por WhatsApp
       </a>
@@ -30,214 +39,297 @@
 
     <main>
       <section class="hero fade-up" id="inicio">
-        <div class="hero-content">
-          <p class="eyebrow">Subcuenta de Vivienda Infonavit</p>
-          <h1>Recupera tu Subcuenta de Vivienda en Efectivo</h1>
-          <p class="lead">No es un préstamo. Es tu dinero. Nosotros realizamos todo el trámite por ti.</p>
-          <ul class="hero-bullets">
-            <li>Asesoría gratuita</li>
-            <li>Proceso rápido y seguro</li>
-            <li>Sin pagos por adelantado</li>
-            <li>Solo pagas si recuperas tu dinero</li>
-          </ul>
-          <div class="hero-ctas">
-            <button type="button" class="btn btn-primary" data-open-modal="hero">
-              Revisar si tengo dinero
-            </button>
-            <a class="btn btn-ghost" data-whatsapp-link target="_blank" rel="noreferrer">
-              Hablar por WhatsApp
-            </a>
+        <div class="hero-grid">
+          <div class="hero-content">
+            <span class="badge">Infonavit · Subcuenta de Vivienda</span>
+            <h1>Recuperamos tu dinero en efectivo con un proceso premium y transparente.</h1>
+            <p class="lead">
+              Validamos tu saldo, te presentamos el monto estimado y gestionamos el trámite extremo a extremo. Sin adelantos, sin
+              letra chiquita, solo resultados.
+            </p>
+            <div class="hero-highlights">
+              <div>
+                <small>Tiempo estimado</small>
+                <strong>3-6 semanas</strong>
+              </div>
+              <div>
+                <small>Honorarios</small>
+                <strong>Solo si recuperas</strong>
+              </div>
+              <div>
+                <small>Asesoría inicial</small>
+                <strong>100% gratuita</strong>
+              </div>
+            </div>
+            <div class="hero-ctas">
+              <button type="button" class="btn btn-primary" data-open-modal="hero">
+                Revisar si tengo dinero
+              </button>
+              <button type="button" class="btn btn-ghost" data-open-modal="llamada">
+                Agendar llamada
+              </button>
+            </div>
+            <p class="microcopy">
+              *Nos conectamos por WhatsApp para confirmar tu identidad y avanzar con los documentos necesarios.
+            </p>
           </div>
-        </div>
-        <div class="hero-media">
-          <img
-            src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80"
-            alt="Asesora de ConCasa revisando documentos"
-            class="hero-image"
-            loading="lazy"
-          />
+          <div class="hero-panel">
+            <div class="hero-panel__image">
+              <img
+                src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80"
+                alt="Asesor senior de ConCasa en sesión de consultoría"
+                loading="lazy"
+              />
+            </div>
+            <div class="hero-panel__card">
+              <p>Ticket promedio recuperado</p>
+              <strong>$18,000 – $120,000 MXN</strong>
+              <span>Depósito directo a tu cuenta</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="section fade-up">
-        <div class="section-content">
-          <div>
-            <p class="eyebrow">Claridad total</p>
-            <h2>¿Qué es la Subcuenta de Vivienda?</h2>
-            <p>
-              Es el ahorro que tu empresa y tú generaron mientras cotizabas en el IMSS. Cada bimestre se enviaba dinero al
-              Infonavit. Si nunca lo usaste o dejaste de cotizar, es muy probable que tengas un monto disponible para recuperar
-              en efectivo.
-            </p>
-          </div>
-          <aside class="highlight-box">
-            Miles de personas no saben que tienen dinero guardado. Nosotros te ayudamos a obtenerlo.
-          </aside>
+      <section class="trust-strip fade-up">
+        <article>
+          <strong>850+</strong>
+          <p>Personas asesoradas en México</p>
+        </article>
+        <article>
+          <strong>12 años</strong>
+          <p>Especialistas dedicados a Subcuenta</p>
+        </article>
+        <article>
+          <strong>0 anticipo</strong>
+          <p>Pagas solo cuando recibes tu dinero</p>
+        </article>
+      </section>
+
+      <section class="section info-panel fade-up" id="subcuenta">
+        <div class="info-copy">
+          <p class="eyebrow">Claridad total</p>
+          <h2>¿Qué es la Subcuenta de Vivienda?</h2>
+          <p>
+            Es el ahorro que tu empresa y tú generaron mientras cotizabas ante el IMSS. Cada bimestre se depositó dinero en tu
+            Subcuenta del Infonavit. Si no utilizaste un crédito o dejaste de cotizar, ese dinero sigue ahí esperando ser
+            recuperado.
+          </p>
+        </div>
+        <div class="info-card">
+          <h3>Lo que hacemos por ti</h3>
+          <ul>
+            <li>Confirmamos tu saldo disponible.</li>
+            <li>Preparamos el expediente completo.</li>
+            <li>Gestionamos el seguimiento con Infonavit.</li>
+            <li>Depositamos directamente a tu cuenta.</li>
+          </ul>
         </div>
       </section>
 
       <section class="section fade-up" id="eligibility">
         <div class="section-header">
           <p class="eyebrow">Check rápido</p>
-          <h2>¿Quién puede recuperar su dinero?</h2>
+          <h2>¿Aplicas para recuperar tu dinero?</h2>
         </div>
-        <div class="checklist">
-          <div class="check-item"><span>✔</span><p>Dejaste de cotizar en el IMSS</p></div>
-          <div class="check-item"><span>✔</span><p>Te dieron de baja hace meses o años</p></div>
-          <div class="check-item"><span>✔</span><p>Estás pensionado o jubilado</p></div>
-          <div class="check-item"><span>✔</span><p>Tienes saldo sin usar de trabajos anteriores</p></div>
-          <div class="check-item"><span>✔</span><p>Eres beneficiario de un familiar fallecido</p></div>
-          <div class="check-item"><span>✔</span><p>Nunca utilizaste tu crédito Infonavit</p></div>
+        <div class="eligibility-grid">
+          <article class="eligibility-card">
+            <h3>Estatus laboral</h3>
+            <p>Ideal si dejaste de cotizar, te pensionaste, te dieron de baja o eres beneficiario.</p>
+          </article>
+          <article class="eligibility-card">
+            <h3>Uso del crédito</h3>
+            <p>Aplica si nunca usaste tu crédito Infonavit o si quedó remanente después de pagarlo.</p>
+          </article>
+          <article class="eligibility-card">
+            <h3>Documentos básicos</h3>
+            <p>Solo necesitamos tu nombre completo, NSS, fecha de nacimiento y medio de contacto.</p>
+          </article>
         </div>
         <button type="button" class="btn btn-primary center" data-open-modal="eligibility">
           Quiero saber si aplico
         </button>
       </section>
 
-      <section class="section fade-up">
+      <section class="section fade-up" id="beneficios">
         <div class="section-header">
-          <p class="eyebrow">Ventajas ConCasa</p>
-          <h2>Beneficios que puedes sentir</h2>
+          <p class="eyebrow">Valor real</p>
+          <h2>Beneficios diseñados para darte confianza</h2>
         </div>
-        <div class="grid grid-3">
-          <article class="card">
-            <div class="icon-circle">💼</div>
-            <h3>Depósito directo</h3>
-            <p>Recibe tu dinero en tu cuenta bancaria sin intermediarios.</p>
+        <div class="value-grid">
+          <article class="value-card">
+            <div class="icon-bullet" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M4 16.5l7 7 17-17" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </div>
+            <div>
+              <h3>Proceso controlado</h3>
+              <p>Timeline claro, actualizaciones programadas y comunicación continua vía WhatsApp.</p>
+            </div>
           </article>
-          <article class="card">
-            <div class="icon-circle">🧾</div>
-            <h3>Tu historial se mantiene limpio</h3>
-            <p>No es un préstamo ni te endeudas. Es tu ahorro.</p>
+          <article class="value-card">
+            <div class="icon-bullet" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M6 24h20M6 8h20M6 16h12" stroke-width="3" stroke-linecap="round" /></svg>
+            </div>
+            <div>
+              <h3>Documentación impecable</h3>
+              <p>Preparamos el expediente con checklist legal para evitar retrasos o rechazos.</p>
+            </div>
           </article>
-          <article class="card">
-            <div class="icon-circle">🔒</div>
-            <h3>Trámite 100% seguro</h3>
-            <p>Validamos cada paso con transparencia y respaldo legal.</p>
+          <article class="value-card">
+            <div class="icon-bullet" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M4 12l12 12L28 8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </div>
+            <div>
+              <h3>Depósito directo</h3>
+              <p>El dinero se transfiere a tu cuenta bancaria. No manejamos efectivo ni terceros.</p>
+            </div>
           </article>
-          <article class="card">
-            <div class="icon-circle">🔍</div>
-            <h3>Revisión gratuita</h3>
-            <p>Analizamos tu caso sin costo y sin compromiso.</p>
-          </article>
-          <article class="card">
-            <div class="icon-circle">🤝</div>
-            <h3>Acompañamiento completo</h3>
-            <p>Un especialista te guía desde la consulta hasta la entrega.</p>
-          </article>
-          <article class="card">
-            <div class="icon-circle">⚡️</div>
-            <h3>Resultados rápidos</h3>
-            <p>Priorizamos tiempos cortos para que uses tu dinero ya.</p>
+          <article class="value-card">
+            <div class="icon-bullet" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M6 22l10 6 10-6V10L16 4 6 10z" stroke-width="3" stroke-linejoin="round" /></svg>
+            </div>
+            <div>
+              <h3>Honorarios por éxito</h3>
+              <p>Pagas solo si el dinero llega a tu cuenta. Todo el riesgo operativo lo asumimos nosotros.</p>
+            </div>
           </article>
         </div>
       </section>
 
-      <section class="section fade-up alt">
+      <section class="section fade-up alt" id="proceso">
         <div class="section-header">
-          <p class="eyebrow">Autoridad</p>
-          <h2>¿Por qué elegir a ConCasa?</h2>
+          <p class="eyebrow">Metodología</p>
+          <h2>Así trabajamos tu caso</h2>
         </div>
-        <div class="grid grid-2">
-          <article class="card tall">
-            <h3>Experiencia real</h3>
-            <p>Más de 850 usuarios atendidos en Monterrey y todo México con recuperaciones exitosas.</p>
-          </article>
-          <article class="card tall">
-            <h3>Proceso transparente</h3>
-            <p>Sin letra chiquita, sin costos ocultos y con reportes claros.</p>
-          </article>
-          <article class="card tall">
-            <h3>Asesoría personalizada</h3>
-            <p>Un especialista responde tus dudas y te acompaña en cada paso.</p>
-          </article>
-          <article class="card tall">
-            <h3>Pagas solo si recuperas</h3>
-            <p>No cobramos anticipos, solo cuando recibes tu dinero.</p>
-          </article>
+        <div class="timeline modern">
+          <div class="timeline-step">
+            <span>1</span>
+            <h3>Diagnóstico express</h3>
+            <p>Revisamos NSS, historial y estimamos monto disponible.</p>
+          </div>
+          <div class="timeline-step">
+            <span>2</span>
+            <h3>Expediente sólido</h3>
+            <p>Recopilamos documentos y firmamos autorización.</p>
+          </div>
+          <div class="timeline-step">
+            <span>3</span>
+            <h3>Gestión formal</h3>
+            <p>Ingresamos el trámite y damos seguimiento con Infonavit.</p>
+          </div>
+          <div class="timeline-step">
+            <span>4</span>
+            <h3>Confirmación</h3>
+            <p>Validamos el depósito y te enviamos constancias.</p>
+          </div>
+          <div class="timeline-step">
+            <span>5</span>
+            <h3>Entrega y cierre</h3>
+            <p>Recibes el dinero, liquidamos honorarios y archivamos tu caso.</p>
+          </div>
         </div>
       </section>
 
-      <section class="section fade-up">
-        <div class="section-header">
-          <p class="eyebrow">Proceso claro</p>
-          <h2>Paso a paso</h2>
-        </div>
-        <div class="timeline">
-          <div class="timeline-step"><span>1</span><h3>Envíanos tus datos</h3><p>Completa el formulario o escríbenos por WhatsApp.</p></div>
-          <div class="timeline-step"><span>2</span><h3>Validamos tu caso</h3><p>Revisamos tu historial Infonavit sin costo.</p></div>
-          <div class="timeline-step"><span>3</span><h3>Cuánto puedes recuperar</h3><p>Te entregamos un estimado documentado.</p></div>
-          <div class="timeline-step"><span>4</span><h3>Iniciamos el trámite</h3><p>Gestionamos todo el proceso legal y administrativo.</p></div>
-          <div class="timeline-step"><span>5</span><h3>Recibes tu dinero</h3><p>Depósito directo a tu cuenta bancaria.</p></div>
+      <section class="contact-panel fade-up">
+        <div class="contact-card">
+          <div>
+            <p class="eyebrow">Contacto prioritario</p>
+            <h2>Tu asesor senior te responde en minutos</h2>
+            <p>
+              Atendemos personalmente desde Monterrey para todo México. Podemos hablar por WhatsApp, llamada o videollamada. Tú
+              eliges cómo iniciar.
+            </p>
+            <div class="contact-actions">
+              <a class="btn btn-primary" data-whatsapp-link target="_blank" rel="noreferrer">Escribir por WhatsApp</a>
+              <a class="btn btn-outline" href="tel:+528112345678">Llamar ahora</a>
+            </div>
+          </div>
+          <div class="contact-meta">
+            <div>
+              <small>Correo directo</small>
+              <a href="mailto:asesoria@concasa.mx">asesoria@concasa.mx</a>
+            </div>
+            <div>
+              <small>Atención</small>
+              <strong>Lun - Vie · 9:00 a 19:00</strong>
+            </div>
+            <div>
+              <small>Oficinas</small>
+              <p>Av. Lázaro Cárdenas 2400, Monterrey, NL</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="section fade-up faq">
+      <section class="section fade-up faq" id="faq">
         <div class="section-header">
           <p class="eyebrow">FAQ</p>
-          <h2>Preguntas frecuentes</h2>
+          <h2>Resolvemos tus dudas antes de iniciar</h2>
         </div>
-        <div class="faq-list">
-          <details open>
-            <summary>¿Es un préstamo?</summary>
-            <p>No. Recuperamos el ahorro que ya generaste en tu Subcuenta de Vivienda del Infonavit.</p>
-          </details>
-          <details>
-            <summary>¿Cuánto dinero puedo recuperar?</summary>
-            <p>Depende del tiempo que cotizaste y de las aportaciones acumuladas. Validamos tu saldo sin costo.</p>
-          </details>
-          <details>
-            <summary>¿Qué necesito para iniciar?</summary>
-            <p>Nombre completo, número IMSS, fecha de nacimiento y un medio de contacto.</p>
-          </details>
-          <details>
-            <summary>¿Cuánto tarda el proceso?</summary>
-            <p>El análisis inicial toma 1-2 días hábiles y el trámite completo de 3 a 6 semanas.</p>
-          </details>
-          <details>
-            <summary>¿A dónde llega el dinero?</summary>
-            <p>Directo a la cuenta bancaria que indiques al autorizar el trámite.</p>
-          </details>
-          <details>
-            <summary>¿Qué pasa si estoy activo en el IMSS?</summary>
-            <p>Puedes revisar tu saldo, pero la entrega en efectivo aplica cuando dejas de cotizar o te pensionas.</p>
-          </details>
-          <details>
-            <summary>¿Qué pasa si ya usé crédito Infonavit?</summary>
-            <p>Verificamos si quedó remanente. Si no hay saldo, te avisamos sin costo.</p>
-          </details>
-          <details>
-            <summary>¿Esto afecta un futuro crédito Infonavit?</summary>
-            <p>No. Recuperar tu subcuenta disponible no impide solicitar créditos futuros.</p>
-          </details>
-          <details>
-            <summary>¿Cuánto cobra ConCasa?</summary>
-            <p>Cobramos honorarios porcentuales solo cuando recibes tu dinero.</p>
-          </details>
-          <details>
-            <summary>¿Qué pasa si no tengo saldo?</summary>
-            <p>Te informamos enseguida y no pagas nada.</p>
-          </details>
+        <div class="faq-columns">
+          <div class="faq-list">
+            <details open>
+              <summary>¿Es un préstamo?</summary>
+              <p>No. Recuperamos el ahorro que ya generaste en tu Subcuenta de Vivienda del Infonavit.</p>
+            </details>
+            <details>
+              <summary>¿Cuánto dinero puedo recuperar?</summary>
+              <p>Depende del tiempo que cotizaste y de las aportaciones acumuladas. Validamos tu saldo sin costo.</p>
+            </details>
+            <details>
+              <summary>¿Qué necesito para iniciar?</summary>
+              <p>Nombre completo, número IMSS, fecha de nacimiento y un medio de contacto.</p>
+            </details>
+            <details>
+              <summary>¿Cuánto tarda el proceso?</summary>
+              <p>El análisis inicial toma 1-2 días hábiles y el trámite completo de 3 a 6 semanas.</p>
+            </details>
+            <details>
+              <summary>¿A dónde llega el dinero?</summary>
+              <p>Directo a la cuenta bancaria que indiques al autorizar el trámite.</p>
+            </details>
+          </div>
+          <div class="faq-list">
+            <details>
+              <summary>¿Qué pasa si estoy activo en el IMSS?</summary>
+              <p>Puedes revisar tu saldo, pero la entrega en efectivo aplica cuando dejas de cotizar o te pensionas.</p>
+            </details>
+            <details>
+              <summary>¿Qué pasa si ya usé crédito Infonavit?</summary>
+              <p>Verificamos si quedó remanente. Si no hay saldo, te avisamos sin costo.</p>
+            </details>
+            <details>
+              <summary>¿Esto afecta un futuro crédito Infonavit?</summary>
+              <p>No. Recuperar tu subcuenta disponible no impide solicitar créditos futuros.</p>
+            </details>
+            <details>
+              <summary>¿Cuánto cobra ConCasa?</summary>
+              <p>Cobramos honorarios porcentuales solo cuando recibes tu dinero.</p>
+            </details>
+            <details>
+              <summary>¿Qué pasa si no tengo saldo?</summary>
+              <p>Te informamos enseguida y no pagas nada.</p>
+            </details>
+          </div>
         </div>
       </section>
 
-      <section class="section fade-up">
+      <section class="section fade-up testimonials">
         <div class="section-header">
           <p class="eyebrow">Confianza real</p>
-          <h2>Testimonios</h2>
+          <h2>Historias recientes</h2>
         </div>
-        <div class="grid grid-3">
-          <article class="card quote">
-            <p>“Recuperé más de $18,000 pesos sin complicaciones. Todo súper rápido.”</p>
-            <strong>Ana — Escobedo</strong>
+        <div class="quote-grid">
+          <article class="quote-card">
+            <p>“Recuperé $28,000 pesos en menos de cinco semanas. Me explicaron cada paso y siempre contestaron mis mensajes.”</p>
+            <strong>Ana · Escobedo</strong>
           </article>
-          <article class="card quote">
-            <p>“Me explicaron todo y el trato fue muy profesional.”</p>
-            <strong>Jorge — Monterrey</strong>
+          <article class="quote-card">
+            <p>“Yo no tenía tiempo para hacer el trámite. ConCasa se encargó y recibí el depósito directo en mi cuenta.”</p>
+            <strong>Jorge · Monterrey</strong>
           </article>
-          <article class="card quote">
-            <p>“Mi papá falleció y ellos recuperaron su saldo. Muchísimas gracias.”</p>
-            <strong>Sandra — San Nicolás</strong>
+          <article class="quote-card">
+            <p>“Mi papá falleció y ellos recuperaron su saldo completo. Muy humanos y muy profesionales.”</p>
+            <strong>Sandra · San Nicolás</strong>
           </article>
         </div>
       </section>

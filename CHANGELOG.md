@@ -11,3 +11,7 @@
 - Se reescribió el modal, validaciones y logging (`action_log`) en `main.js`, manteniendo el flujo de WhatsApp prellenado.
 - Se actualizó la documentación (`/docs`) para reflejar la nueva arquitectura y plan de pruebas manuales.
 
+## B2 - 2025-11-24
+- Se rediseñó la UI para ofrecer una experiencia premium y persuasiva (hero con panel de métricas, strip de confianza, panel de contacto y layout modular sin emojis).
+- Se modernizó la capa visual (`styles.css`) con gradientes, cards y tipografía consistente; se actualizaron los CTAs y se agregaron nuevos puntos de contacto.
+
