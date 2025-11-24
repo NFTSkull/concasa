@@ -220,6 +220,17 @@ main {
   animation: fadeInUp 1s 0.3s ease both;
 }
 
+.hero-ctas .btn-ghost {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--black);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hero-ctas .btn-ghost:hover {
+  background: var(--white);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .microcopy {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.75);
