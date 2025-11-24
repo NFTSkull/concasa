@@ -7,3 +7,9 @@
 - **Integración:** El formulario abre WhatsApp con mensaje prellenado y registra cada envío en `action_log`. El número puede sobreescribirse via `NEXT_PUBLIC_WHATSAPP_NUMBER`.
 - **SEO:** Se añadió metadata completa, LocalBusiness + FAQ schema y textos con keywords de Infonavit/Subcuenta para posicionamiento orgánico.
 
+## 2025-11-24 — B1
+- **Migración:** Se eliminó el stack de Next.js y se dejó una landing totalmente estática (`index.html`, `styles.css`, `main.js`) para facilitar pushes y deploys sin dependencias.
+- **Funcionalidad:** El modal, validaciones y `action_log` ahora viven en JS vanilla; los enlaces de WhatsApp se generan dinámicamente con `data-whatsapp-link`.
+- **SEO/Schema:** JSON-LD de LocalBusiness y FAQ se incrustó directamente en el HTML, manteniendo la estrategia anterior.
+- **Docs:** Se actualizaron `/docs/ARQUITECTURA`, `/TEST_PLAN`, `/RIESGOS` y el changelog para reflejar el nuevo enfoque.
+

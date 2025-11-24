@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ConCasa Landing (Static)
 
-## Getting Started
+Landing 100 % estática para ConCasa Soluciones Inmobiliarias. Basta con abrir `index.html` o subir los archivos raíz a cualquier hosting/CDN para publicar el sitio.
 
-First, run the development server:
+## Instalación / Uso
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/NFTSkull/concasa.git
+cd concasa
+# abrir index.html en el navegador o desplegar la carpeta completa
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+No se requieren dependencias de Node. Si quieres desarrollar con live reload puedes levantar cualquier servidor estático (por ejemplo `python -m http.server`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estructura
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `index.html`: markup principal y scripts de schema.org.
+- `styles.css`: paleta, layout y animaciones `fade-up`.
+- `main.js`: lógica del modal, validaciones y deeplink a WhatsApp (`action_log` en memoria).
+- `docs/`: documentación funcional (producto, arquitectura, contratos, riesgos y plan de pruebas).
 
-## Learn More
+## Flujo principal
 
-To learn more about Next.js, take a look at the following resources:
+1. CTA “Revisar si tengo dinero” abre el modal.
+2. Validaciones en cliente garantizan formato (NSS numérico, fecha DD/MM/AAAA, teléfonos 10 dígitos).
+3. Se genera un mensaje prellenado y se abre `wa.me/<número>`.
+4. Se registra el envío en `window.__actionLog` para auditoría básica (sin persistencia).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Sube los archivos raíz (`index.html`, `styles.css`, `main.js`, `favicon.ico` y `docs/`) al hosting de tu elección. En Vercel/GitHub Pages basta con seleccionar “Other / Static Files” y apuntar al directorio del repo.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

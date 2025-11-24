@@ -12,16 +12,23 @@
   --transition: all 0.35s ease;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: var(--font-manrope, "Manrope", "Inter", sans-serif);
+  font-family: "Manrope", "Inter", system-ui, -apple-system, sans-serif;
   background-color: var(--white);
   color: var(--black);
   line-height: 1.6;
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 main {
@@ -29,7 +36,6 @@ main {
   flex-direction: column;
   gap: 4rem;
   padding: 6rem clamp(1.5rem, 4vw, 8rem);
-  background: var(--white);
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -108,15 +114,17 @@ main {
   box-shadow: var(--shadow);
 }
 
-.hero-image {
-  object-fit: cover;
-}
-
 .hero-media::after {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(120deg, rgba(11, 163, 96, 0.2), rgba(0, 0, 0, 0.35));
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .btn {
@@ -132,6 +140,8 @@ main {
   justify-content: center;
   align-items: center;
   min-width: 220px;
+  color: inherit;
+  background: none;
 }
 
 .btn-primary {
@@ -214,6 +224,7 @@ main {
   padding: 1rem 1.2rem;
   border: 1px solid var(--soft-gray);
   border-radius: var(--radius);
+  background: var(--white);
 }
 
 .check-item span {
@@ -246,7 +257,7 @@ main {
 }
 
 .card.tall {
-  min-height: 220px;
+  min-height: 180px;
 }
 
 .card.quote p {
@@ -275,6 +286,7 @@ main {
   padding: 1.5rem;
   border-radius: var(--radius);
   border: 1px solid var(--soft-gray);
+  background: var(--white);
 }
 
 .timeline-step span {
@@ -317,14 +329,6 @@ main {
   gap: 1rem;
 }
 
-.legal {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .footer-links {
   display: flex;
   flex-wrap: wrap;
@@ -340,6 +344,14 @@ main {
 
 .footer-links a:hover {
   border-color: var(--white);
+}
+
+.legal {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .floating-wa {
@@ -375,11 +387,6 @@ main {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.modal-subtitle {
-  color: var(--text-muted);
-  margin: 0;
 }
 
 .modal-header {
@@ -419,9 +426,15 @@ main {
   font-size: 1rem;
 }
 
+.modal-subtitle {
+  color: var(--text-muted);
+  margin: 0;
+}
+
 .error {
   font-size: 0.85rem;
   color: var(--danger);
+  min-height: 1.1em;
 }
 
 .privacy-note {
@@ -430,9 +443,18 @@ main {
   text-align: center;
 }
 
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 .fade-up {
   opacity: 0;
   transform: translateY(20px);
+}
+
+.fade-up.in-view {
   animation: fadeUp 0.8s forwards;
 }
 
@@ -470,3 +492,4 @@ main {
     right: 1.5rem;
   }
 }
+
