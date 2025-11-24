@@ -39,14 +39,22 @@
 
     <main>
       <section class="hero fade-up" id="inicio">
-        <div class="hero-grid">
-          <div class="hero-content">
+        <div class="hero-mediaLayer">
+          <video src="video-hero.mp4" autoplay muted loop playsinline aria-label="Asesores ConCasa trabajando">
+            <track kind="captions" />
+          </video>
+          <div class="hero-mediaLayer__overlay"></div>
+        </div>
+        <div class="hero-inner">
+          <div class="hero-copy">
             <span class="badge">Infonavit · Subcuenta de Vivienda</span>
-            <h1>Recuperamos tu dinero en efectivo con un proceso premium y transparente.</h1>
-            <p class="lead">
-              Validamos tu saldo, te presentamos el monto estimado y gestionamos el trámite extremo a extremo. Sin adelantos, sin
-              letra chiquita, solo resultados.
-            </p>
+            <div class="hero-headline">
+              <h1>Recuperamos tu dinero en efectivo con un proceso premium y transparente.</h1>
+              <p>
+                Validamos tu saldo, te presentamos el monto estimado y gestionamos el trámite extremo a extremo. Sin adelantos,
+                sin letra chiquita, solo resultados.
+              </p>
+            </div>
             <div class="hero-highlights">
               <div>
                 <small>Tiempo estimado</small>
@@ -73,17 +81,10 @@
               *Nos conectamos por WhatsApp para confirmar tu identidad y avanzar con los documentos necesarios.
             </p>
           </div>
-          <div class="hero-panel">
-            <div class="hero-panel__video">
-              <video src="video-hero.mp4" autoplay muted loop playsinline poster="" aria-label="Asesores ConCasa trabajando">
-                <track kind="captions" />
-              </video>
-            </div>
-            <div class="hero-panel__card">
-              <p>Ticket promedio recuperado</p>
-              <strong>$18,000 – $120,000 MXN</strong>
-              <span>Depósito directo a tu cuenta</span>
-            </div>
+          <div class="hero-ticket">
+            <p>Ticket promedio recuperado</p>
+            <strong>$18,000 – $120,000 MXN</strong>
+            <span>Depósito directo a tu cuenta</span>
           </div>
         </div>
       </section>
