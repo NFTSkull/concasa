@@ -386,19 +386,17 @@ main {
 }
 
 .icon-bullet {
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-  background: rgba(11, 163, 96, 0.15);
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  background: rgba(15, 27, 27, 0.05);
   display: grid;
   place-items: center;
 }
 
 .icon-bullet svg {
-  width: 28px;
-  height: 28px;
-  stroke: var(--green);
-  fill: none;
+  width: 60px;
+  height: 60px;
 }
 
 .timeline {
