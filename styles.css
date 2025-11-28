@@ -1989,13 +1989,29 @@ main {
 
   /* Floating WhatsApp button */
   .floating-wa {
-    width: calc(100% - 2rem);
-    right: 1rem;
-    left: 1rem;
-    bottom: 1rem;
-    padding: 0.85rem 1.25rem;
-    font-size: 0.9rem;
+    position: fixed;
+    bottom: 1.25rem;
+    left: 1.25rem;
+    right: 1.25rem;
+    width: auto;
+    max-width: none;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
     text-align: center;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(11, 163, 96, 0.4);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    transition: all 0.3s ease;
+  }
+
+  .floating-wa:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 16px rgba(11, 163, 96, 0.3);
   }
 
   /* Modal */
