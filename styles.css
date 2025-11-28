@@ -269,10 +269,68 @@ main {
 
 .hero-ctas {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 1rem;
-  margin: 0.5rem 0 0;
+  margin: 2rem 0 1rem;
   animation: fadeInUp 1s 0.3s ease both;
+}
+
+.btn-hero-cta {
+  position: relative;
+  padding: 1.5rem 2.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #0ba360, #0f7c5a);
+  box-shadow: 0 16px 40px rgba(11, 163, 96, 0.4);
+  border: none;
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+.btn-hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 50px rgba(11, 163, 96, 0.5);
+  background: linear-gradient(135deg, #0f7c5a, #0ba360);
+}
+
+.btn-hero-cta .cta-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.btn-hero-cta .cta-subtext {
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 16px 40px rgba(11, 163, 96, 0.4);
+  }
+  50% {
+    box-shadow: 0 16px 50px rgba(11, 163, 96, 0.6);
+  }
+}
+
+.hero-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.btn-small {
+  padding: 0.7rem 1.5rem;
+  font-size: 0.9rem;
+  min-width: auto;
 }
 
 .hero-ctas .btn-ghost {
@@ -289,6 +347,7 @@ main {
 .microcopy {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.75);
+  text-align: center;
 }
 
 .hero-ticket {
@@ -420,6 +479,161 @@ main {
 
 .trust-strip strong {
   font-size: 2rem;
+}
+
+.mejoravit-banner {
+  background: linear-gradient(135deg, #0ba360 0%, #0f7c5a 100%);
+  color: var(--white);
+  padding: 4rem 2.5rem;
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px rgba(11, 163, 96, 0.3);
+  margin: 3rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.mejoravit-banner::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.mejoravit-content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.mejoravit-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1.5rem;
+  border-radius: 999px;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+
+.mejoravit-banner h2 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  margin-bottom: 2.5rem;
+  font-weight: 700;
+}
+
+.highlight-amount {
+  color: #ffd700;
+  font-size: 3rem;
+  display: inline-block;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.6);
+  }
+}
+
+.mejoravit-uses {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin: 2.5rem 0;
+}
+
+.use-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.use-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.use-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.use-item p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.mejoravit-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.benefit-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+}
+
+.mejoravit-cta {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.cta-text {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cta-subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.mejoravit-cta .btn {
+  margin-top: 0.5rem;
+  background: var(--white);
+  color: var(--green);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.mejoravit-cta .btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
 }
 
 .info-panel {
@@ -1218,11 +1432,21 @@ main {
   .hero-ctas {
     flex-direction: column;
     gap: 0.75rem;
+    margin: 1.5rem 0 1rem;
   }
 
   .hero-ctas .btn {
     width: 100%;
     min-width: auto;
+  }
+
+  .hero-contact-info {
+    gap: 0.75rem;
+  }
+
+  .btn-small {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
   }
 
   .btn-large {
@@ -1259,6 +1483,76 @@ main {
 
   .trust-strip strong {
     font-size: 1.5rem;
+  }
+
+  .mejoravit-banner {
+    padding: 2.5rem 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .mejoravit-banner h2 {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .highlight-amount {
+    font-size: 2rem;
+    display: block;
+    margin-top: 0.5rem;
+  }
+
+  .mejoravit-uses {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+
+  .use-item {
+    padding: 1.25rem;
+  }
+
+  .use-icon {
+    font-size: 2rem;
+  }
+
+  .use-item p {
+    font-size: 1rem;
+  }
+
+  .mejoravit-benefits {
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .benefit-text {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+  }
+
+  .mejoravit-cta {
+    margin-top: 2rem;
+  }
+
+  .cta-text {
+    font-size: 1.1rem;
+  }
+
+  .cta-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .btn-hero-cta {
+    padding: 1.25rem 1.8rem;
+    font-size: 1.1rem;
+  }
+
+  .btn-hero-cta .cta-icon {
+    font-size: 1.3rem;
+  }
+
+  .btn-hero-cta .cta-subtext {
+    font-size: 0.8rem;
   }
 
   .info-panel {
