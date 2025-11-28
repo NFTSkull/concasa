@@ -122,8 +122,11 @@ main {
   position: relative;
   border-radius: 36px;
   overflow: hidden;
-  min-height: 520px;
+  min-height: 100vh;
+  max-height: 100vh;
   box-shadow: 0 40px 80px rgba(15, 27, 27, 0.22);
+  display: flex;
+  align-items: center;
 }
 
 .hero-mediaLayer {
@@ -149,28 +152,33 @@ main {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 1.5rem;
-  padding: clamp(2.5rem, 4vw, 4rem);
+  padding: clamp(2rem, 3vw, 3rem);
   color: var(--white);
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
 }
 
 .hero-copy {
-  max-width: 640px;
+  max-width: 700px;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1rem;
   animation: fadeInUp 0.9s ease both;
 }
 
 .hero-copy h1 {
-  font-size: clamp(2.6rem, 4vw, 3.8rem);
+  font-size: clamp(2rem, 3.5vw, 3.2rem);
   margin: 0;
+  line-height: 1.2;
 }
 
 .hero-copy p {
   color: rgba(255, 255, 255, 0.88);
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+  line-height: 1.5;
 }
 
 .hero-copy p strong {
@@ -296,61 +304,50 @@ main {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin: 2rem 0 1rem;
+  margin: 1.5rem 0 0.5rem;
   animation: fadeInUp 1s 0.3s ease both;
 }
 
 .btn-hero-cta {
   position: relative;
-  padding: 1.6rem 2.5rem;
-  font-size: 1.3rem;
-  font-weight: 800;
-  min-width: 100%;
-  display: flex;
-  flex-direction: column;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 280px;
+  max-width: 400px;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  background: linear-gradient(135deg, #0ba360, #0f7c5a);
-  box-shadow: 0 16px 40px rgba(11, 163, 96, 0.4);
+  justify-content: center;
+  background: var(--green);
+  color: var(--white);
+  box-shadow: 0 8px 24px rgba(11, 163, 96, 0.35);
   border: none;
+  border-radius: 12px;
   transition: all 0.3s ease;
-  animation: pulse 2s infinite;
-  letter-spacing: 0.02em;
+  text-decoration: none;
+  letter-spacing: 0.01em;
 }
 
 .btn-hero-cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 50px rgba(11, 163, 96, 0.5);
-  background: linear-gradient(135deg, #0f7c5a, #0ba360);
-}
-
-.btn-hero-cta .cta-icon {
-  font-size: 1.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.btn-hero-cta .cta-subtext {
-  font-size: 0.85rem;
-  font-weight: 500;
-  opacity: 0.9;
-  margin-top: 0.25rem;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 16px 40px rgba(11, 163, 96, 0.4);
-  }
-  50% {
-    box-shadow: 0 16px 50px rgba(11, 163, 96, 0.6);
-  }
+  box-shadow: 0 12px 32px rgba(11, 163, 96, 0.45);
+  background: #0f7c5a;
 }
 
 .hero-contact-info {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  align-items: center;
-  margin-top: 1rem;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-top: 0.5rem;
+}
+
+.microcopy {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: left;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .btn-small {
@@ -368,12 +365,6 @@ main {
 .hero-ctas .btn-ghost:hover {
   background: var(--white);
   border-color: rgba(255, 255, 255, 0.5);
-}
-
-.microcopy {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.75);
-  text-align: center;
 }
 
 .hero-ticket {
@@ -1410,29 +1401,36 @@ main {
 
   /* Hero optimizado */
   .hero {
-    min-height: 480px;
+    min-height: 100vh;
+    max-height: 100vh;
     border-radius: 24px;
   }
 
   .hero-inner {
-    padding: 2rem 1.5rem;
-    gap: 1.25rem;
+    padding: 1.5rem 1.25rem;
+    gap: 1rem;
+    min-height: 100vh;
+    max-height: 100vh;
+  }
+
+  .hero-copy {
+    gap: 0.75rem;
   }
 
   .hero-copy h1 {
-    font-size: 1.75rem;
-    line-height: 1.3;
+    font-size: 1.6rem;
+    line-height: 1.25;
   }
 
   .hero-amount {
-    font-size: 1.15em;
+    font-size: 1.1em;
     display: block;
-    margin-top: 0.3rem;
+    margin-top: 0.25rem;
   }
 
   .hero-copy p {
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.9rem;
+    line-height: 1.4;
   }
 
   .hero-highlights {
@@ -1465,7 +1463,7 @@ main {
   .hero-ctas {
     flex-direction: column;
     gap: 0.75rem;
-    margin: 1.5rem 0 1rem;
+    margin: 1rem 0 0.5rem;
   }
 
   .hero-ctas .btn {
@@ -1473,8 +1471,20 @@ main {
     min-width: auto;
   }
 
+  .btn-hero-cta {
+    padding: 0.95rem 1.5rem;
+    font-size: 1rem;
+    min-width: 100%;
+    max-width: 100%;
+  }
+
   .hero-contact-info {
-    gap: 0.75rem;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .microcopy {
+    font-size: 0.75rem;
   }
 
   .btn-small {
