@@ -599,8 +599,17 @@ main {
 }
 
 .use-icon {
-  font-size: 2.5rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+
+.use-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .use-item p {
@@ -1589,7 +1598,8 @@ main {
   }
 
   .use-icon {
-    font-size: 2rem;
+    width: 50px;
+    height: 50px;
   }
 
   .use-item p {
