@@ -1,0 +1,23 @@
+[
+  { "id": 1, "name": "Vendedor 1", "phone": "5218112345678" },
+  { "id": 2, "name": "Vendedor 2", "phone": "5218112345679" },
+  { "id": 3, "name": "Vendedor 3", "phone": "5218112345680" },
+  { "id": 4, "name": "Vendedor 4", "phone": "5218112345681" },
+  { "id": 5, "name": "Vendedor 5", "phone": "5218112345682" },
+  { "id": 6, "name": "Vendedor 6", "phone": "5218112345683" },
+  { "id": 7, "name": "Vendedor 7", "phone": "5218112345684" },
+  { "id": 8, "name": "Vendedor 8", "phone": "5218112345685" },
+  { "id": 9, "name": "Vendedor 9", "phone": "5218112345686" },
+  { "id": 10, "name": "Vendedor 10", "phone": "5218112345687" },
+  { "id": 11, "name": "Vendedor 11", "phone": "5218112345688" },
+  { "id": 12, "name": "Vendedor 12", "phone": "5218112345689" },
+  { "id": 13, "name": "Vendedor 13", "phone": "5218112345690" },
+  { "id": 14, "name": "Vendedor 14", "phone": "5218112345691" },
+  { "id": 15, "name": "Vendedor 15", "phone": "5218112345692" },
+  { "id": 16, "name": "Vendedor 16", "phone": "5218112345693" },
+  { "id": 17, "name": "Vendedor 17", "phone": "5218112345694" },
+  { "id": 18, "name": "Vendedor 18", "phone": "5218112345695" },
+  { "id": 19, "name": "Vendedor 19", "phone": "5218112345696" },
+  { "id": 20, "name": "Vendedor 20", "phone": "5218112345697" }
+]
+

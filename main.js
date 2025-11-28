@@ -1,5 +1,9 @@
-const WHATSAPP_NUMBER = "5218112345678";
+// Número por defecto (fallback si el API falla)
+const DEFAULT_WHATSAPP_NUMBER = "5218112345678";
 const DEFAULT_MESSAGE = "Hola, quiero conversar con un asesor de ConCasa.";
+
+// API endpoint para asignar vendedor
+const API_ENDPOINT = "/api/assign-vendor";
 
 const whatsappLinks = document.querySelectorAll("[data-whatsapp-link]");
 const modal = document.getElementById("lead-modal");
@@ -12,7 +16,41 @@ const originInput = document.getElementById("cta-origin");
 const currentYear = document.getElementById("current-year");
 const actionLog = [];
 
-const withWhatsappUrl = (text) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+// Variable para almacenar el número de WhatsApp actual
+let currentWhatsAppNumber = DEFAULT_WHATSAPP_NUMBER;
+
+// Función para obtener vendedor asignado (round robin)
+const assignVendor = async () => {
+  try {
+    const response = await fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al asignar vendedor");
+    }
+
+    const data = await response.json();
+    if (data.success && data.vendor) {
+      currentWhatsAppNumber = data.vendor.phone;
+      console.log(`[Round Robin] Vendedor asignado: ${data.vendor.name} (${data.vendor.phone})`);
+      return data.vendor.phone;
+    }
+  } catch (error) {
+    console.error("[Error asignando vendedor]", error);
+    // Usar número por defecto si falla
+    currentWhatsAppNumber = DEFAULT_WHATSAPP_NUMBER;
+  }
+  return currentWhatsAppNumber;
+};
+
+const withWhatsappUrl = (text, phoneNumber = null) => {
+  const number = phoneNumber || currentWhatsAppNumber;
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+};
 
 const toggleModal = (isOpen) => {
   if (!modal) return;
@@ -21,9 +59,25 @@ const toggleModal = (isOpen) => {
   document.body.style.overflow = isOpen ? "hidden" : "";
 };
 
-const updateWhatsappLinks = () => {
+const updateWhatsappLinks = async () => {
+  // Asignar vendedor para los links directos
+  await assignVendor();
+  
   whatsappLinks.forEach((link) => {
-    link.href = withWhatsappUrl(DEFAULT_MESSAGE);
+    // Agregar event listener para asignar vendedor al hacer clic
+    link.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const assignedPhone = await assignVendor();
+      const url = withWhatsappUrl(DEFAULT_MESSAGE, assignedPhone);
+      
+      logLeadAction({
+        timestamp: new Date().toISOString(),
+        origenCTA: "direct-whatsapp",
+        vendedorAsignado: assignedPhone,
+      });
+      
+      window.open(url, "_blank", "noopener,noreferrer");
+    });
   });
 };
 
@@ -101,13 +155,16 @@ const logLeadAction = (entry) => {
   console.info("[action_log]", entry);
 };
 
-const handleSubmit = (event) => {
+const handleSubmit = async (event) => {
   event.preventDefault();
   const formElement = event.target;
   clearErrors(formElement);
   const formData = new FormData(formElement);
   const validation = validateForm(formData, formElement);
   if (!validation.isValid) return;
+
+  // Asignar vendedor usando round robin
+  const assignedPhone = await assignVendor();
 
   const message = [
     "Hola, quiero solicitar el préstamo de Subcuenta de Vivienda con 11% de interés.",
@@ -128,9 +185,10 @@ const handleSubmit = (event) => {
     timestamp: new Date().toISOString(),
     nombre: validation.fullName,
     origenCTA: formData.get("origin") ?? "hero",
+    vendedorAsignado: assignedPhone,
   });
 
-  window.open(withWhatsappUrl(message), "_blank", "noopener,noreferrer");
+  window.open(withWhatsappUrl(message, assignedPhone), "_blank", "noopener,noreferrer");
   formElement.reset();
   
   if (formElement === form) {
