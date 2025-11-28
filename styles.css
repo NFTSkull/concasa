@@ -250,6 +250,23 @@ main {
   margin: 0;
 }
 
+.stat-card.highlight {
+  background: rgba(11, 163, 96, 0.25);
+  border: 2px solid rgba(11, 163, 96, 0.5);
+  box-shadow: 0 8px 24px rgba(11, 163, 96, 0.3);
+}
+
+.stat-card.highlight strong {
+  color: #0ba360;
+  font-size: 1.5rem;
+}
+
+.value-card.highlight {
+  background: linear-gradient(135deg, rgba(11, 163, 96, 0.08), rgba(11, 163, 96, 0.15));
+  border: 2px solid rgba(11, 163, 96, 0.3);
+  box-shadow: 0 8px 24px rgba(11, 163, 96, 0.2);
+}
+
 .hero-ctas {
   display: flex;
   flex-wrap: wrap;

@@ -110,7 +110,9 @@ const handleSubmit = (event) => {
   if (!validation.isValid) return;
 
   const message = [
-    "Hola, quiero conocer el saldo de mi Subcuenta de Vivienda.",
+    "Hola, quiero solicitar el préstamo de Subcuenta de Vivienda con 11% de interés.",
+    "",
+    "Soy trabajador activo que cotiza en Infonavit y me interesa el préstamo más amigable.",
     "",
     "Mis datos son:",
     `Nombre completo: ${validation.fullName}`,
