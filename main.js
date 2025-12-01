@@ -21,7 +21,10 @@ const form = document.getElementById("lead-form");
 const pageForm = document.getElementById("page-form");
 const originInput = document.getElementById("cta-origin");
 const currentYear = document.getElementById("current-year");
+const locationModal = document.getElementById("location-modal");
+const locationForm = document.getElementById("location-form");
 const actionLog = [];
+let pendingWhatsappAction = null; // Guarda la acción de WhatsApp pendiente
 
 /**
  * Obtiene un vendedor asignado usando round robin desde Supabase
@@ -78,23 +81,57 @@ const toggleModal = (isOpen) => {
   document.body.style.overflow = isOpen ? "hidden" : "";
 };
 
+const toggleLocationModal = (isOpen) => {
+  if (!locationModal) return;
+  locationModal.classList.toggle("hidden", !isOpen);
+  locationModal.setAttribute("aria-hidden", String(!isOpen));
+  document.body.style.overflow = isOpen ? "hidden" : "";
+};
+
+const proceedToWhatsApp = async (locationType) => {
+  if (!pendingWhatsappAction) return;
+  
+  const { link, origin } = pendingWhatsappAction;
+  pendingWhatsappAction = null;
+  
+  const assignedPhone = await assignVendor();
+  const locationText = locationType === "monterrey" 
+    ? "Soy de Monterrey, Nuevo León" 
+    : "Soy foráneo pero radico en Monterrey, Nuevo León";
+  
+  const message = `${DEFAULT_MESSAGE}\n\n${locationText}`;
+  const url = withWhatsappUrl(message, assignedPhone);
+  
+  logLeadAction({
+    timestamp: new Date().toISOString(),
+    origenCTA: origin || "direct-whatsapp",
+    vendedorAsignado: assignedPhone,
+    ubicacion: locationText,
+  });
+
+  // Usar location.href en lugar de window.open mejora compatibilidad
+  // con navegadores móviles (especialmente Safari en iOS)
+  window.location.href = url;
+};
+
 const updateWhatsappLinks = () => {
   whatsappLinks.forEach((link) => {
-    // Agregar event listener para asignar vendedor al hacer clic
+    // Agregar event listener para mostrar modal de ubicación primero
     link.addEventListener("click", async (e) => {
       e.preventDefault();
-      const assignedPhone = await assignVendor();
-      const url = withWhatsappUrl(DEFAULT_MESSAGE, assignedPhone);
       
-      logLeadAction({
-        timestamp: new Date().toISOString(),
-        origenCTA: "direct-whatsapp",
-        vendedorAsignado: assignedPhone,
-      });
-
-      // Usar location.href en lugar de window.open mejora compatibilidad
-      // con navegadores móviles (especialmente Safari en iOS)
-      window.location.href = url;
+      // Determinar el origen del CTA
+      let origin = "direct-whatsapp";
+      if (link.closest(".hero-ctas")) origin = "hero";
+      else if (link.closest(".mejoravit-cta")) origin = "mejoravit";
+      else if (link.closest(".cta-center")) origin = "cta-center";
+      else if (link.classList.contains("floating-wa")) origin = "floating-wa";
+      
+      // Guardar la acción pendiente
+      pendingWhatsappAction = { link, origin };
+      
+      // Mostrar modal de ubicación
+      toggleLocationModal(true);
     });
   });
 };
@@ -286,10 +323,45 @@ const initModal = () => {
     });
   });
 
+  // Manejar formulario de ubicación
+  if (locationForm) {
+    locationForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const selectedLocation = locationForm.querySelector('input[name="location"]:checked');
+      if (selectedLocation) {
+        toggleLocationModal(false);
+        proceedToWhatsApp(selectedLocation.value);
+      }
+    });
+  }
+
+  // Cerrar modal de ubicación
+  const closeLocationButtons = document.querySelectorAll("[data-close-location-modal]");
+  closeLocationButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toggleLocationModal(false);
+      pendingWhatsappAction = null;
+    });
+  });
+
+  // Cerrar modal de ubicación al hacer clic fuera
+  if (locationModal) {
+    locationModal.addEventListener("click", (event) => {
+      if (event.target === locationModal) {
+        toggleLocationModal(false);
+        pendingWhatsappAction = null;
+      }
+    });
+  }
+
   // Cerrar cualquier modal con ESC
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       toggleModal(false);
+      if (locationModal && !locationModal.classList.contains("hidden")) {
+        toggleLocationModal(false);
+        pendingWhatsappAction = null;
+      }
       if (privacidadModal && !privacidadModal.classList.contains("hidden")) {
         toggleLegalModal("privacidad-modal", false);
       }

@@ -91,6 +91,9 @@
               <p class="microcopy">
                 ✓ Para trabajadores que cotizan en IMSS · ✓ Asesoría gratuita · ✓ Depósito directo
               </p>
+              <p class="location-restriction">
+                <strong>📍 Disponible únicamente para residentes de Monterrey, Nuevo León</strong>
+              </p>
             </div>
           </div>
         </div>
@@ -304,6 +307,9 @@
             <p class="eyebrow">Solicita tu préstamo</p>
             <h2>Préstamo con 11% de interés para trabajadores activos</h2>
             <p>Completa el formulario y te contactaremos por WhatsApp en minutos para validar tu elegibilidad y el monto disponible. Solo para trabajadores activos que cotizan en Infonavit.</p>
+            <p class="location-restriction" style="margin-top: 1rem;">
+              <strong>📍 Disponible únicamente para residentes de Monterrey, Nuevo León</strong>
+            </p>
           </div>
           <form class="contact-form" id="page-form">
             <input type="hidden" name="origin" value="formulario-pagina" />
@@ -512,6 +518,35 @@
             Préstamo con 11% de interés para trabajadores activos que cotizan en Infonavit. Tus datos se usan solo para validar tu elegibilidad y continuar el proceso vía WhatsApp.
           </p>
         </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="location-modal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3>Confirmar ubicación</h3>
+          <button type="button" class="close-btn" data-close-location-modal aria-label="Cerrar">×</button>
+        </div>
+        <div class="modal-location-content">
+          <p class="location-warning">
+            <strong>Este servicio está disponible únicamente para residentes de Monterrey, Nuevo León.</strong>
+          </p>
+          <p>Por favor, confirma tu situación:</p>
+          <form id="location-form">
+            <label class="location-option">
+              <input type="radio" name="location" value="monterrey" required />
+              <span>Soy de Monterrey, Nuevo León</span>
+            </label>
+            <label class="location-option">
+              <input type="radio" name="location" value="foraneo" required />
+              <span>Soy foráneo pero radico en Monterrey, Nuevo León</span>
+            </label>
+            <div class="location-actions">
+              <button type="button" class="btn btn-outline" data-close-location-modal>Cancelar</button>
+              <button type="submit" class="btn btn-primary">Continuar</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
 
