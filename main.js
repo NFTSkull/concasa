@@ -220,17 +220,39 @@ const handleSubmit = async (event) => {
   }
 };
 
+const toggleLegalModal = (modalId, isOpen) => {
+  const legalModal = document.getElementById(modalId);
+  if (!legalModal) return;
+  legalModal.classList.toggle("hidden", !isOpen);
+  legalModal.setAttribute("aria-hidden", String(!isOpen));
+  document.body.style.overflow = isOpen ? "hidden" : "";
+};
+
 const initModal = () => {
   openModalButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const origin = button.getAttribute("data-open-modal") ?? "hero";
-      setModalOrigin(origin);
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
+      const modalType = button.getAttribute("data-open-modal") ?? "hero";
+      
+      // Manejar modales legales
+      if (modalType === "privacidad") {
+        toggleLegalModal("privacidad-modal", true);
+        return;
+      }
+      if (modalType === "terminos") {
+        toggleLegalModal("terminos-modal", true);
+        return;
+      }
+      
+      // Manejar modal de lead
+      setModalOrigin(modalType);
       toggleModal(true);
       const firstInput = form.querySelector("input[name='fullName']");
       firstInput?.focus();
     });
   });
 
+  // Cerrar modales de lead
   closeModalButton?.addEventListener("click", () => toggleModal(false));
 
   modal?.addEventListener("click", (event) => {
@@ -239,9 +261,41 @@ const initModal = () => {
     }
   });
 
+  // Cerrar modales legales
+  const privacidadModal = document.getElementById("privacidad-modal");
+  const terminosModal = document.getElementById("terminos-modal");
+  
+  [privacidadModal, terminosModal].forEach((legalModal) => {
+    if (!legalModal) return;
+    
+    // Cerrar al hacer clic en el backdrop
+    legalModal.addEventListener("click", (event) => {
+      if (event.target === legalModal) {
+        legalModal.classList.add("hidden");
+        legalModal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+      }
+    });
+    
+    // Cerrar con botón X
+    const closeBtn = legalModal.querySelector("[data-close-modal]");
+    closeBtn?.addEventListener("click", () => {
+      legalModal.classList.add("hidden");
+      legalModal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    });
+  });
+
+  // Cerrar cualquier modal con ESC
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       toggleModal(false);
+      if (privacidadModal && !privacidadModal.classList.contains("hidden")) {
+        toggleLegalModal("privacidad-modal", false);
+      }
+      if (terminosModal && !terminosModal.classList.contains("hidden")) {
+        toggleLegalModal("terminos-modal", false);
+      }
     }
   });
 };

@@ -440,17 +440,9 @@
         </div>
         <div class="footer-legal">
           <h4>Legal</h4>
-          <a href="#aviso-privacidad">Aviso de privacidad</a>
-          <a href="#terminos">Términos y condiciones</a>
+          <a href="#" data-open-modal="privacidad">Aviso de privacidad</a>
+          <a href="#" data-open-modal="terminos">Términos y condiciones</a>
         </div>
-      </div>
-      <div class="legal-text">
-        <p id="aviso-privacidad">
-          <strong>Aviso de privacidad:</strong> Usamos tu información únicamente para validar tu Subcuenta de Vivienda y contactarte por WhatsApp.
-        </p>
-        <p id="terminos">
-          <strong>Términos y condiciones:</strong> Mejora Plus actúa como gestor independiente; pagas honorarios únicamente cuando recibes tu dinero.
-        </p>
       </div>
       <p class="copyright">© <span id="current-year"></span> Mejora Plus. Todos los derechos reservados.</p>
     </footer>
@@ -503,6 +495,119 @@
             Préstamo con 11% de interés para trabajadores activos que cotizan en Infonavit. Tus datos se usan solo para validar tu elegibilidad y continuar el proceso vía WhatsApp.
           </p>
         </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="privacidad-modal" aria-hidden="true">
+      <div class="modal-card modal-legal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3>Aviso de Privacidad</h3>
+          <button type="button" class="close-btn" data-close-modal aria-label="Cerrar aviso de privacidad">×</button>
+        </div>
+        <div class="modal-legal-content">
+          <p><strong>Última actualización:</strong> Diciembre 2024</p>
+          
+          <h4>1. Responsable del tratamiento de datos</h4>
+          <p>Mejora Plus es una empresa de asesoría especializada en préstamos Mejoravit. Nos dedicamos a verificar tu situación y ayudarte a acceder a préstamos con 11% de interés para trabajadores que cotizan en Infonavit.</p>
+          
+          <h4>2. Información que recopilamos</h4>
+          <p>Para poder asesorarte y verificar tu situación respecto a Mejoravit, recopilamos la siguiente información:</p>
+          <ul>
+            <li>Nombre completo</li>
+            <li>Número de afiliación IMSS (NSS)</li>
+            <li>Fecha de nacimiento</li>
+            <li>Número de teléfono</li>
+            <li>Número de WhatsApp</li>
+          </ul>
+          
+          <h4>3. Finalidad del tratamiento</h4>
+          <p>Utilizamos tu información únicamente para:</p>
+          <ul>
+            <li>Verificar tu situación y elegibilidad para préstamos Mejoravit</li>
+            <li>Contactarte por WhatsApp para brindarte asesoría personalizada</li>
+            <li>Validar tu saldo disponible en la Subcuenta de Vivienda del Infonavit</li>
+            <li>Gestionar el proceso de solicitud de préstamo si decides continuar</li>
+          </ul>
+          
+          <h4>4. Compartir información</h4>
+          <p>No vendemos, alquilamos ni compartimos tu información personal con terceros para fines comerciales. Solo compartimos información con el Infonavit cuando es necesario para gestionar tu solicitud de préstamo, siempre con tu autorización previa.</p>
+          
+          <h4>5. Tus derechos</h4>
+          <p>Tienes derecho a:</p>
+          <ul>
+            <li>Acceder a tu información personal</li>
+            <li>Rectificar datos incorrectos</li>
+            <li>Cancelar el tratamiento de tus datos</li>
+            <li>Oponerte al tratamiento de tus datos</li>
+          </ul>
+          <p>Para ejercer estos derechos, contáctanos por WhatsApp o al correo electrónico proporcionado en nuestro sitio web.</p>
+          
+          <h4>6. Seguridad</h4>
+          <p>Implementamos medidas de seguridad técnicas y organizativas para proteger tu información personal contra acceso no autorizado, pérdida o destrucción.</p>
+          
+          <h4>7. Contacto</h4>
+          <p>Si tienes preguntas sobre este aviso de privacidad, puedes contactarnos a través de nuestros canales de comunicación oficiales.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="terminos-modal" aria-hidden="true">
+      <div class="modal-card modal-legal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <h3>Términos y Condiciones</h3>
+          <button type="button" class="close-btn" data-close-modal aria-label="Cerrar términos y condiciones">×</button>
+        </div>
+        <div class="modal-legal-content">
+          <p><strong>Última actualización:</strong> Diciembre 2024</p>
+          
+          <h4>1. Sobre Mejora Plus</h4>
+          <p>Mejora Plus es una empresa de asesoría especializada en préstamos Mejoravit. Nos dedicamos a verificar tu situación y ayudarte a acceder a préstamos con 11% de interés, la tasa más amigable del mercado, para trabajadores activos que cotizan en Infonavit.</p>
+          
+          <h4>2. Nuestro servicio</h4>
+          <p>Como asesores, nuestro servicio incluye:</p>
+          <ul>
+            <li>Verificación de tu situación y elegibilidad para préstamos Mejoravit</li>
+            <li>Validación de tu saldo disponible en la Subcuenta de Vivienda del Infonavit</li>
+            <li>Asesoría personalizada sobre el proceso de préstamo</li>
+            <li>Gestión y seguimiento de tu solicitud ante el Infonavit</li>
+          </ul>
+          
+          <h4>3. Elegibilidad</h4>
+          <p>El préstamo Mejoravit con 11% de interés está disponible únicamente para:</p>
+          <ul>
+            <li>Trabajadores activos que cotizan en Infonavit</li>
+            <li>Personas que tengan saldo disponible en su Subcuenta de Vivienda</li>
+            <li>Quienes cumplan con los requisitos establecidos por el Infonavit</li>
+          </ul>
+          
+          <h4>4. Honorarios</h4>
+          <p>Mejora Plus actúa como gestor independiente. Nuestros honorarios se cobran únicamente cuando recibes tu préstamo. No hay adelantos, no hay letra chiquita. Solo pagas cuando obtienes resultados.</p>
+          
+          <h4>5. Proceso</h4>
+          <p>El proceso es sencillo:</p>
+          <ol>
+            <li>Nos contactas y proporcionas tus datos básicos</li>
+            <li>Verificamos tu situación y elegibilidad (sin costo)</li>
+            <li>Te informamos el monto disponible y las condiciones</li>
+            <li>Si decides continuar, gestionamos tu solicitud</li>
+            <li>El préstamo se deposita en 3-6 semanas</li>
+          </ol>
+          
+          <h4>6. Tiempos</h4>
+          <p>La verificación inicial toma 24-48 horas. El proceso completo de préstamo puede tardar de 3 a 6 semanas desde que iniciamos el trámite, dependiendo de los tiempos de respuesta del Infonavit.</p>
+          
+          <h4>7. Limitación de responsabilidad</h4>
+          <p>Mejora Plus es un asesor independiente. No garantizamos la aprobación del préstamo, ya que la decisión final corresponde al Infonavit. Nuestro compromiso es brindarte asesoría profesional y gestionar tu solicitud de la mejor manera posible.</p>
+          
+          <h4>8. Modificaciones</h4>
+          <p>Nos reservamos el derecho de modificar estos términos y condiciones en cualquier momento. Los cambios serán publicados en este sitio web.</p>
+          
+          <h4>9. Aceptación</h4>
+          <p>Al utilizar nuestros servicios, aceptas estos términos y condiciones. Si no estás de acuerdo, te pedimos que no utilices nuestros servicios.</p>
+          
+          <h4>10. Contacto</h4>
+          <p>Para cualquier duda sobre estos términos y condiciones, puedes contactarnos a través de nuestros canales de comunicación oficiales.</p>
+        </div>
       </div>
     </div>
 
