@@ -30,3 +30,4 @@ No se requieren dependencias de Node. Si quieres desarrollar con live reload pue
 
 Sube los archivos raíz (`index.html`, `styles.css`, `main.js`, `favicon.ico` y `docs/`) al hosting de tu elección. En Vercel/GitHub Pages basta con seleccionar “Other / Static Files” y apuntar al directorio del repo.
 
+

@@ -8,7 +8,9 @@
     "build": "echo 'Static site - no build needed'",
     "start": "echo 'Static site - no start needed'"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
   "devDependencies": {}
 }
 

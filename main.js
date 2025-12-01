@@ -1,6 +1,13 @@
+/**
+ * Sistema de Round Robin con Supabase
+ * 
+ * Este archivo maneja la asignación de vendedores usando round robin
+ * y la generación de links de WhatsApp.
+ */
+
 // Número por defecto (fallback si el API falla)
-const DEFAULT_WHATSAPP_NUMBER = "5218112345678";
-const DEFAULT_MESSAGE = "Hola, quiero conversar con un asesor de ConCasa.";
+const DEFAULT_WHATSAPP_NUMBER = "8181781697"; // Primer vendedor como fallback
+const DEFAULT_MESSAGE = "Hola, quiero obtener mi préstamo Mejoravit.";
 
 // API endpoint para asignar vendedor
 const API_ENDPOINT = "/api/assign-vendor";
@@ -16,10 +23,10 @@ const originInput = document.getElementById("cta-origin");
 const currentYear = document.getElementById("current-year");
 const actionLog = [];
 
-// Variable para almacenar el número de WhatsApp actual
-let currentWhatsAppNumber = DEFAULT_WHATSAPP_NUMBER;
-
-// Función para obtener vendedor asignado (round robin)
+/**
+ * Obtiene un vendedor asignado usando round robin desde Supabase
+ * @returns {Promise<string>} Número de teléfono del vendedor (10 dígitos, sin +52)
+ */
 const assignVendor = async () => {
   try {
     const response = await fetch(API_ENDPOINT, {
@@ -30,25 +37,37 @@ const assignVendor = async () => {
     });
 
     if (!response.ok) {
-      throw new Error("Error al asignar vendedor");
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Error al asignar vendedor");
     }
 
     const data = await response.json();
     if (data.success && data.vendor) {
-      currentWhatsAppNumber = data.vendor.phone;
-      console.log(`[Round Robin] Vendedor asignado: ${data.vendor.name} (${data.vendor.phone})`);
+      console.log(
+        `[Round Robin] Vendedor asignado: ${data.vendor.name} ` +
+        `(${data.vendor.phone}) - Total leads: ${data.vendor.lead_count}`
+      );
+      // Retornar solo el número (10 dígitos, sin +52)
       return data.vendor.phone;
+    } else {
+      throw new Error(data.error || "Respuesta inválida del servidor");
     }
   } catch (error) {
     console.error("[Error asignando vendedor]", error);
-    // Usar número por defecto si falla
-    currentWhatsAppNumber = DEFAULT_WHATSAPP_NUMBER;
+    // Retornar número por defecto si falla
+    return DEFAULT_WHATSAPP_NUMBER;
   }
-  return currentWhatsAppNumber;
 };
 
+/**
+ * Genera la URL de WhatsApp con el formato correcto
+ * @param {string} text - Mensaje a enviar
+ * @param {string} phoneNumber - Número de teléfono (10 dígitos, sin +52)
+ * @returns {string} URL completa de WhatsApp
+ */
 const withWhatsappUrl = (text, phoneNumber = null) => {
-  const number = phoneNumber || currentWhatsAppNumber;
+  // El número viene sin +52, así que lo agregamos
+  const number = phoneNumber ? `52${phoneNumber}` : `52${DEFAULT_WHATSAPP_NUMBER}`;
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 };
 
