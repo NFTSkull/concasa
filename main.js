@@ -78,10 +78,7 @@ const toggleModal = (isOpen) => {
   document.body.style.overflow = isOpen ? "hidden" : "";
 };
 
-const updateWhatsappLinks = async () => {
-  // Asignar vendedor para los links directos
-  await assignVendor();
-  
+const updateWhatsappLinks = () => {
   whatsappLinks.forEach((link) => {
     // Agregar event listener para asignar vendedor al hacer clic
     link.addEventListener("click", async (e) => {
@@ -94,8 +91,10 @@ const updateWhatsappLinks = async () => {
         origenCTA: "direct-whatsapp",
         vendedorAsignado: assignedPhone,
       });
-      
-      window.open(url, "_blank", "noopener,noreferrer");
+
+      // Usar location.href en lugar de window.open mejora compatibilidad
+      // con navegadores móviles (especialmente Safari en iOS)
+      window.location.href = url;
     });
   });
 };
@@ -207,7 +206,11 @@ const handleSubmit = async (event) => {
     vendedorAsignado: assignedPhone,
   });
 
-  window.open(withWhatsappUrl(message, assignedPhone), "_blank", "noopener,noreferrer");
+  const whatsappUrl = withWhatsappUrl(message, assignedPhone);
+
+  // Redirigir en la misma pestaña para máxima compatibilidad móvil
+  window.location.href = whatsappUrl;
+
   formElement.reset();
   
   if (formElement === form) {
