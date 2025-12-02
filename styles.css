@@ -484,6 +484,79 @@ main {
   margin: 0;
 }
 
+.video-section {
+  padding: 4rem clamp(1.5rem, 4vw, 8rem);
+  background: #fff;
+}
+
+.video-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.video-header {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.video-header .eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--green);
+  margin-bottom: 0.75rem;
+}
+
+.video-header h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--black);
+  margin: 0 0 1rem 0;
+}
+
+.video-header p {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(10, 28, 22, 0.15);
+  background: #000;
+}
+
+.explicative-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 80vh;
+  object-fit: contain;
+  background: #000;
+}
+
+.explicative-video::-webkit-media-controls-panel {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.explicative-video::-webkit-media-controls-play-button,
+.explicative-video::-webkit-media-controls-volume-slider,
+.explicative-video::-webkit-media-controls-fullscreen-button {
+  filter: brightness(1.2);
+}
+
 .trust-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -2225,6 +2298,32 @@ main {
 
   .location-actions .btn {
     width: 100%;
+  }
+
+  /* Sección de video en móvil */
+  .video-section {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .video-container {
+    gap: 1.5rem;
+  }
+
+  .video-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .video-header p {
+    font-size: 0.9rem;
+  }
+
+  .video-wrapper {
+    border-radius: 16px;
+  }
+
+  .explicative-video {
+    max-height: 60vh;
   }
 
   .floating-wa:active {

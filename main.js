@@ -470,10 +470,55 @@ const initMobileMenu = () => {
   });
 };
 
+const initVideoAutoplay = () => {
+  const videoSection = document.getElementById("video-explicativo");
+  const video = document.getElementById("video-prestamo");
+  
+  if (!videoSection || !video) return;
+
+  const observerOptions = {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.5, // Se activa cuando el 50% del video está visible
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        // Cuando el video entra en vista
+        video.play().catch((error) => {
+          console.log("Autoplay bloqueado, el usuario debe iniciar manualmente:", error);
+        });
+      } else {
+        // Cuando el video sale de vista
+        video.pause();
+      }
+    });
+  }, observerOptions);
+
+  observer.observe(videoSection);
+
+  // Pausar video cuando sale de la página (pestaña inactiva)
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      video.pause();
+    }
+  });
+
+  // Prevenir múltiples reproducciones si el usuario ya interactuó
+  let userInteracted = false;
+  video.addEventListener("play", () => {
+    if (!userInteracted) {
+      userInteracted = true;
+    }
+  });
+};
+
 updateWhatsappLinks();
 initModal();
 initForm();
 initYear();
 initAnimations();
 initMobileMenu();
+initVideoAutoplay();
 
