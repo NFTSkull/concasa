@@ -476,22 +476,59 @@ const initVideoAutoplay = () => {
   
   if (!videoSection || !video) return;
 
+  // Cargar el video cuando esté listo
+  video.addEventListener("loadedmetadata", () => {
+    console.log("Video cargado, duración:", video.duration);
+  });
+
+  // Manejar errores de carga
+  video.addEventListener("error", (e) => {
+    console.error("Error al cargar el video:", e);
+    const errorMsg = document.createElement("div");
+    errorMsg.className = "video-error";
+    errorMsg.innerHTML = `
+      <p>No se pudo cargar el video. Por favor, intenta recargar la página.</p>
+      <p>Si el problema persiste, asegúrate de que el archivo esté disponible.</p>
+    `;
+    video.parentElement.appendChild(errorMsg);
+  });
+
+  // Intentar cargar el video
+  video.load();
+
   const observerOptions = {
     root: null,
     rootMargin: "0px",
-    threshold: 0.5, // Se activa cuando el 50% del video está visible
+    threshold: 0.3, // Se activa cuando el 30% del video está visible
   };
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        // Cuando el video entra en vista
-        video.play().catch((error) => {
-          console.log("Autoplay bloqueado, el usuario debe iniciar manualmente:", error);
-        });
+        // Cuando el video entra en vista, intentar reproducir
+        const playPromise = video.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              // Reproducción exitosa
+              console.log("Video reproduciéndose automáticamente");
+            })
+            .catch((error) => {
+              // Autoplay bloqueado, el usuario debe iniciar manualmente
+              console.log("Autoplay bloqueado por el navegador. El usuario debe iniciar manualmente.");
+              // Intentar reproducir sin sonido (muted)
+              video.muted = true;
+              video.play().catch(() => {
+                console.log("Incluso con muted, el autoplay está bloqueado");
+              });
+            });
+        }
       } else {
-        // Cuando el video sale de vista
-        video.pause();
+        // Cuando el video sale de vista, pausar
+        if (!video.paused) {
+          video.pause();
+        }
       }
     });
   }, observerOptions);
@@ -500,16 +537,24 @@ const initVideoAutoplay = () => {
 
   // Pausar video cuando sale de la página (pestaña inactiva)
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
+    if (document.hidden && !video.paused) {
       video.pause();
     }
   });
 
-  // Prevenir múltiples reproducciones si el usuario ya interactuó
+  // Permitir al usuario activar el audio cuando quiera
+  video.addEventListener("click", () => {
+    if (video.muted) {
+      video.muted = false;
+    }
+  });
+
+  // Si el usuario interactúa con el video, permitir audio
   let userInteracted = false;
   video.addEventListener("play", () => {
     if (!userInteracted) {
       userInteracted = true;
+      video.muted = false;
     }
   });
 };

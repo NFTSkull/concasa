@@ -536,15 +536,30 @@ main {
   overflow: hidden;
   box-shadow: 0 25px 60px rgba(10, 28, 22, 0.15);
   background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilos específicos para formato reel (vertical) */
+.video-wrapper.video-reel {
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .explicative-video {
   width: 100%;
   height: auto;
   display: block;
-  max-height: 80vh;
   object-fit: contain;
   background: #000;
+  min-height: 400px;
+}
+
+.video-reel .explicative-video {
+  max-height: 85vh;
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
 }
 
 .explicative-video::-webkit-media-controls-panel {
@@ -555,6 +570,21 @@ main {
 .explicative-video::-webkit-media-controls-volume-slider,
 .explicative-video::-webkit-media-controls-fullscreen-button {
   filter: brightness(1.2);
+}
+
+.video-error {
+  padding: 2rem;
+  text-align: center;
+  color: var(--danger);
+  background: rgba(229, 57, 53, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+.video-error p {
+  margin: 0.5rem 0;
+  color: var(--danger);
 }
 
 .trust-strip {
@@ -2322,8 +2352,19 @@ main {
     border-radius: 16px;
   }
 
+  .video-wrapper.video-reel {
+    max-width: 100%;
+    max-width: min(400px, 90vw);
+  }
+
   .explicative-video {
-    max-height: 60vh;
+    max-height: 75vh;
+    min-height: 300px;
+  }
+
+  .video-reel .explicative-video {
+    max-height: 75vh;
+    width: 100%;
   }
 
   .floating-wa:active {
