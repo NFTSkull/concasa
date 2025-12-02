@@ -109,6 +109,17 @@ const proceedToWhatsApp = async (locationType) => {
     ubicacion: locationText,
   });
 
+  // Trackear evento de Lead en Facebook Pixel
+  if (typeof fbq !== 'undefined') {
+    fbq('track', 'Lead', {
+      content_name: 'Solicitud de préstamo Mejoravit',
+      content_category: 'Préstamo',
+      value: 163000,
+      currency: 'MXN',
+      source: origin || "direct-whatsapp"
+    });
+  }
+
   // Usar location.href en lugar de window.open mejora compatibilidad
   // con navegadores móviles (especialmente Safari en iOS)
   window.location.href = url;
@@ -242,6 +253,17 @@ const handleSubmit = async (event) => {
     origenCTA: formData.get("origin") ?? "hero",
     vendedorAsignado: assignedPhone,
   });
+
+  // Trackear evento de Lead en Facebook Pixel
+  if (typeof fbq !== 'undefined') {
+    fbq('track', 'Lead', {
+      content_name: 'Solicitud de préstamo Mejoravit',
+      content_category: 'Préstamo',
+      value: 163000,
+      currency: 'MXN',
+      source: formData.get("origin") ?? "hero"
+    });
+  }
 
   const whatsappUrl = withWhatsappUrl(message, assignedPhone);
 
