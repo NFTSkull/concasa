@@ -319,6 +319,7 @@ main {
   font-weight: 500;
   letter-spacing: 0.01em;
   opacity: 0.9;
+  line-height: 1.5;
 }
 
 .btn-hero-cta {
@@ -1858,11 +1859,6 @@ main {
     min-width: auto;
   }
 
-  .hero-security-note {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.75rem;
-  }
-
   .btn-hero-cta {
     padding: 1.1rem 1.5rem;
     font-size: 1.05rem;
@@ -1871,6 +1867,11 @@ main {
     max-width: 100%;
     border-radius: 12px;
     letter-spacing: 0.01em;
+  }
+
+  .hero-security-note {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.75rem;
   }
 
   .hero-contact-info {
