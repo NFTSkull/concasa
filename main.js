@@ -345,8 +345,22 @@ const initModal = () => {
     });
   });
 
-  // Manejar formulario de ubicación
+  // Manejar formulario de ubicación - se envía automáticamente al seleccionar una opción
   if (locationForm) {
+    const locationInputs = locationForm.querySelectorAll('input[name="location"]');
+    locationInputs.forEach((input) => {
+      input.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          // Pequeño delay para mejor UX
+          setTimeout(() => {
+            toggleLocationModal(false);
+            proceedToWhatsApp(e.target.value);
+          }, 300);
+        }
+      });
+    });
+
+    // También mantener el submit por si acaso
     locationForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const selectedLocation = locationForm.querySelector('input[name="location"]:checked');
