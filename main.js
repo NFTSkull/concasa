@@ -125,43 +125,6 @@ const proceedToWhatsApp = async (locationType) => {
   window.location.href = url;
 };
 
-const proceedToWhatsApp = async (locationType) => {
-  if (!pendingWhatsappAction) return;
-  
-  const { link, origin } = pendingWhatsappAction;
-  pendingWhatsappAction = null;
-  
-  const assignedPhone = await assignVendor();
-  const locationText = locationType === "monterrey" 
-    ? "Soy de Monterrey, Nuevo León" 
-    : "Soy foráneo pero radico en Monterrey, Nuevo León";
-  
-  const message = `${DEFAULT_MESSAGE}\n\n${locationText}`;
-  const url = withWhatsappUrl(message, assignedPhone);
-  
-  logLeadAction({
-    timestamp: new Date().toISOString(),
-    origenCTA: origin || "direct-whatsapp",
-    vendedorAsignado: assignedPhone,
-    ubicacion: locationText,
-  });
-
-  // Trackear evento de Lead en Facebook Pixel
-  if (typeof fbq !== 'undefined') {
-    fbq('track', 'Lead', {
-      content_name: 'Solicitud de préstamo Mejoravit',
-      content_category: 'Préstamo',
-      value: 163000,
-      currency: 'MXN',
-      source: origin || "direct-whatsapp"
-    });
-  }
-
-  // Usar location.href en lugar de window.open mejora compatibilidad
-  // con navegadores móviles (especialmente Safari en iOS)
-  window.location.href = url;
-};
-
 const updateWhatsappLinks = () => {
   whatsappLinks.forEach((link) => {
     // Agregar event listener para mostrar modal de ubicación primero
@@ -382,8 +345,23 @@ const initModal = () => {
     });
   });
 
-  // Manejar formulario de ubicación
+  // Manejar selección automática de ubicación
   if (locationForm) {
+    const locationInputs = locationForm.querySelectorAll('input[name="location"]');
+    
+    // Cuando se selecciona una opción, automáticamente proceder a WhatsApp
+    locationInputs.forEach((input) => {
+      input.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          // Cerrar el modal inmediatamente
+          toggleLocationModal(false);
+          // Proceder a WhatsApp con la ubicación seleccionada
+          proceedToWhatsApp(e.target.value);
+        }
+      });
+    });
+
+    // También mantener el submit por si acaso
     locationForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const selectedLocation = locationForm.querySelector('input[name="location"]:checked');
