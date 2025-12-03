@@ -125,9 +125,39 @@ const proceedToWhatsApp = async (locationType) => {
   window.location.href = url;
 };
 
+const openWhatsAppDirectly = async (origin) => {
+  // Asignar vendedor usando round robin
+  const assignedPhone = await assignVendor();
+  
+  // Mensaje sin información de ubicación
+  const message = DEFAULT_MESSAGE;
+  const url = withWhatsappUrl(message, assignedPhone);
+  
+  logLeadAction({
+    timestamp: new Date().toISOString(),
+    origenCTA: origin || "direct-whatsapp",
+    vendedorAsignado: assignedPhone,
+  });
+
+  // Trackear evento de Lead en Facebook Pixel
+  if (typeof fbq !== 'undefined') {
+    fbq('track', 'Lead', {
+      content_name: 'Solicitud de préstamo Mejoravit',
+      content_category: 'Préstamo',
+      value: 163000,
+      currency: 'MXN',
+      source: origin || "direct-whatsapp"
+    });
+  }
+
+  // Usar location.href en lugar de window.open mejora compatibilidad
+  // con navegadores móviles (especialmente Safari en iOS)
+  window.location.href = url;
+};
+
 const updateWhatsappLinks = () => {
   whatsappLinks.forEach((link) => {
-    // Agregar event listener para mostrar modal de ubicación primero
+    // Agregar event listener para abrir WhatsApp directamente
     link.addEventListener("click", async (e) => {
       e.preventDefault();
       
@@ -138,11 +168,8 @@ const updateWhatsappLinks = () => {
       else if (link.closest(".cta-center")) origin = "cta-center";
       else if (link.classList.contains("floating-wa")) origin = "floating-wa";
       
-      // Guardar la acción pendiente
-      pendingWhatsappAction = { link, origin };
-      
-      // Mostrar modal de ubicación
-      toggleLocationModal(true);
+      // Abrir WhatsApp directamente con round robin
+      await openWhatsAppDirectly(origin);
     });
   });
 };
