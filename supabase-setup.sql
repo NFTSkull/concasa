@@ -92,3 +92,4 @@ CREATE TRIGGER update_queue_state_updated_at
 -- SELECT * FROM queue_state;
 -- ============================================
 
+

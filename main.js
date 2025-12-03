@@ -345,23 +345,8 @@ const initModal = () => {
     });
   });
 
-  // Manejar selección automática de ubicación
+  // Manejar formulario de ubicación
   if (locationForm) {
-    const locationInputs = locationForm.querySelectorAll('input[name="location"]');
-    
-    // Cuando se selecciona una opción, automáticamente proceder a WhatsApp
-    locationInputs.forEach((input) => {
-      input.addEventListener("change", (e) => {
-        if (e.target.checked) {
-          // Cerrar el modal inmediatamente
-          toggleLocationModal(false);
-          // Proceder a WhatsApp con la ubicación seleccionada
-          proceedToWhatsApp(e.target.value);
-        }
-      });
-    });
-
-    // También mantener el submit por si acaso
     locationForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const selectedLocation = locationForm.querySelector('input[name="location"]:checked');

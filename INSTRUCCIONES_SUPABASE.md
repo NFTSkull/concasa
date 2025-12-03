@@ -203,3 +203,4 @@ Solo dímelo y lo creo.
 
 4. **Formato de teléfono**: Los números en la BD están sin +52 (solo 10 dígitos). El código agrega el +52 automáticamente al generar el link de WhatsApp.
 
+

@@ -9,3 +9,4 @@
 - **Recursos visuales:** Fotografía profesional de asesores/clientes (personas reales). Animaciones suaves tipo fade-in. Nada de degradados; máximo 3 colores por vista.
 
 
+
