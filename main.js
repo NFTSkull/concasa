@@ -138,6 +138,11 @@ const updateWhatsappLinks = () => {
       else if (link.closest(".cta-center")) origin = "cta-center";
       else if (link.classList.contains("floating-wa")) origin = "floating-wa";
       
+      // Disparamos evento del Pixel cuando el usuario inicia el flujo de WhatsApp desde el botón del hero
+      if (origin === "hero" && typeof fbq !== 'undefined') {
+        fbq('trackCustom', 'ClickWhatsApp');
+      }
+      
       // Guardar la acción pendiente
       pendingWhatsappAction = { link, origin };
       
