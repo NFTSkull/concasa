@@ -125,18 +125,25 @@ const proceedToWhatsApp = async (locationType) => {
   window.location.href = url;
 };
 
-const openWhatsAppDirectly = async (origin) => {
-  // Asignar vendedor usando round robin
-  const assignedPhone = await assignVendor();
+const proceedToWhatsApp = async (locationType) => {
+  if (!pendingWhatsappAction) return;
   
-  // Mensaje sin información de ubicación
-  const message = DEFAULT_MESSAGE;
+  const { link, origin } = pendingWhatsappAction;
+  pendingWhatsappAction = null;
+  
+  const assignedPhone = await assignVendor();
+  const locationText = locationType === "monterrey" 
+    ? "Soy de Monterrey, Nuevo León" 
+    : "Soy foráneo pero radico en Monterrey, Nuevo León";
+  
+  const message = `${DEFAULT_MESSAGE}\n\n${locationText}`;
   const url = withWhatsappUrl(message, assignedPhone);
   
   logLeadAction({
     timestamp: new Date().toISOString(),
     origenCTA: origin || "direct-whatsapp",
     vendedorAsignado: assignedPhone,
+    ubicacion: locationText,
   });
 
   // Trackear evento de Lead en Facebook Pixel
@@ -157,7 +164,7 @@ const openWhatsAppDirectly = async (origin) => {
 
 const updateWhatsappLinks = () => {
   whatsappLinks.forEach((link) => {
-    // Agregar event listener para abrir WhatsApp directamente
+    // Agregar event listener para mostrar modal de ubicación primero
     link.addEventListener("click", async (e) => {
       e.preventDefault();
       
@@ -168,8 +175,11 @@ const updateWhatsappLinks = () => {
       else if (link.closest(".cta-center")) origin = "cta-center";
       else if (link.classList.contains("floating-wa")) origin = "floating-wa";
       
-      // Abrir WhatsApp directamente con round robin
-      await openWhatsAppDirectly(origin);
+      // Guardar la acción pendiente
+      pendingWhatsappAction = { link, origin };
+      
+      // Mostrar modal de ubicación
+      toggleLocationModal(true);
     });
   });
 };
