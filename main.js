@@ -23,6 +23,7 @@ const originInput = document.getElementById("cta-origin");
 const currentYear = document.getElementById("current-year");
 const locationModal = document.getElementById("location-modal");
 const locationForm = document.getElementById("location-form");
+const whatsappLoading = document.getElementById("whatsapp-loading");
 const actionLog = [];
 let pendingWhatsappAction = null; // Guarda la acción de WhatsApp pendiente
 
@@ -88,41 +89,54 @@ const toggleLocationModal = (isOpen) => {
   document.body.style.overflow = isOpen ? "hidden" : "";
 };
 
+const toggleWhatsappLoading = (isVisible) => {
+  if (!whatsappLoading) return;
+  whatsappLoading.classList.toggle("hidden", !isVisible);
+  whatsappLoading.setAttribute("aria-hidden", String(!isVisible));
+};
+
 const proceedToWhatsApp = async (locationType) => {
   if (!pendingWhatsappAction) return;
-  
   const { link, origin } = pendingWhatsappAction;
   pendingWhatsappAction = null;
-  
-  const assignedPhone = await assignVendor();
-  const locationText = locationType === "monterrey" 
-    ? "Soy de Monterrey, Nuevo León" 
-    : "Soy foráneo pero radico en Monterrey, Nuevo León";
-  
-  const message = `${DEFAULT_MESSAGE}\n\n${locationText}`;
-  const url = withWhatsappUrl(message, assignedPhone);
-  
-  logLeadAction({
-    timestamp: new Date().toISOString(),
-    origenCTA: origin || "direct-whatsapp",
-    vendedorAsignado: assignedPhone,
-    ubicacion: locationText,
-  });
 
-  // Trackear evento de Lead en Facebook Pixel
-  if (typeof fbq !== 'undefined') {
-    fbq('track', 'Lead', {
-      content_name: 'Solicitud de préstamo Mejoravit',
-      content_category: 'Préstamo',
-      value: 163000,
-      currency: 'MXN',
-      source: origin || "direct-whatsapp"
+  toggleWhatsappLoading(true);
+
+  try {
+    const assignedPhone = await assignVendor();
+    const locationText =
+      locationType === "monterrey"
+        ? "Soy de Monterrey, Nuevo León"
+        : "Soy foráneo pero radico en Monterrey, Nuevo León";
+
+    const message = `${DEFAULT_MESSAGE}\n\n${locationText}`;
+    const url = withWhatsappUrl(message, assignedPhone);
+
+    logLeadAction({
+      timestamp: new Date().toISOString(),
+      origenCTA: origin || "direct-whatsapp",
+      vendedorAsignado: assignedPhone,
+      ubicacion: locationText,
     });
-  }
 
-  // Usar location.href en lugar de window.open mejora compatibilidad
-  // con navegadores móviles (especialmente Safari en iOS)
-  window.location.href = url;
+    // Trackear evento de Lead en Facebook Pixel
+    if (typeof fbq !== "undefined") {
+      fbq("track", "Lead", {
+        content_name: "Solicitud de préstamo Mejoravit",
+        content_category: "Préstamo",
+        value: 163000,
+        currency: "MXN",
+        source: origin || "direct-whatsapp",
+      });
+    }
+
+    // Usar location.href en lugar de window.open mejora compatibilidad
+    // con navegadores móviles (especialmente Safari en iOS)
+    window.location.href = url;
+  } catch (error) {
+    console.error("[WhatsApp flow error]", error);
+    toggleWhatsappLoading(false);
+  }
 };
 
 const updateWhatsappLinks = () => {
