@@ -927,6 +927,115 @@ main {
   gap: 1rem;
 }
 
+.mejora-hogar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.75rem;
+  margin: 3rem 0;
+}
+
+.mejora-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2.25rem;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 27, 27, 0.08);
+  box-shadow: 0 8px 24px rgba(15, 27, 27, 0.06);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.mejora-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--green), var(--green-dark));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.mejora-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(15, 27, 27, 0.1);
+  border-color: rgba(11, 163, 96, 0.2);
+}
+
+.mejora-card:hover::before {
+  transform: scaleX(1);
+}
+
+.mejora-icon {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(11, 163, 96, 0.12), rgba(11, 163, 96, 0.06));
+  border-radius: 20px;
+  border: 1px solid rgba(11, 163, 96, 0.2);
+  transition: all 0.3s ease;
+}
+
+.mejora-card:hover .mejora-icon {
+  background: linear-gradient(135deg, rgba(11, 163, 96, 0.18), rgba(11, 163, 96, 0.1));
+  border-color: rgba(11, 163, 96, 0.3);
+  transform: scale(1.05);
+}
+
+.mejora-icon svg {
+  width: 52px;
+  height: 52px;
+}
+
+.mejora-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mejora-content h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.mejora-content p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.mejora-cta {
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(15, 27, 27, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.mejora-cta-text {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: 500;
+  max-width: 600px;
+}
+
 .value-card {
   display: flex;
   gap: 1rem;
@@ -2124,6 +2233,44 @@ main {
   .value-grid {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+  }
+
+  .mejora-hogar-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin: 2rem 0;
+  }
+
+  .mejora-card {
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .mejora-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .mejora-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mejora-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .mejora-content p {
+    font-size: 0.9rem;
+  }
+
+  .mejora-cta {
+    margin-top: 2rem;
+    padding-top: 2rem;
+  }
+
+  .mejora-cta-text {
+    font-size: 1rem;
   }
 
   .value-card {
