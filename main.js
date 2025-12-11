@@ -28,6 +28,48 @@ const actionLog = [];
 let pendingWhatsappAction = null; // Guarda la acción de WhatsApp pendiente
 
 /**
+ * Prepara los datos de coincidencias avanzadas para Meta Pixel
+ * Los valores se hashean automáticamente por el píxel usando SHA-256
+ * @param {Object} userData - Datos del usuario
+ * @param {string} userData.fullName - Nombre completo
+ * @param {string} userData.phone - Teléfono
+ * @param {string} userData.whatsapp - WhatsApp
+ * @param {string} userData.birthDate - Fecha de nacimiento (DD/MM/AAAA)
+ * @returns {Object} Objeto con datos de coincidencias avanzadas
+ */
+const prepareAdvancedMatchingData = (userData) => {
+  const advancedMatching = {};
+
+  // Teléfono: normalizar (solo números, sin espacios ni caracteres especiales)
+  if (userData.phone) {
+    const normalizedPhone = userData.phone.replace(/\D/g, '');
+    if (normalizedPhone.length >= 10) {
+      advancedMatching.ph = normalizedPhone;
+    }
+  }
+
+  // Nombre y apellido: extraer del nombre completo
+  if (userData.fullName) {
+    const nameParts = userData.fullName.trim().split(/\s+/);
+    if (nameParts.length > 0) {
+      advancedMatching.fn = nameParts[0]; // Primer nombre
+    }
+    if (nameParts.length > 1) {
+      // Último elemento como apellido
+      advancedMatching.ln = nameParts[nameParts.length - 1];
+    }
+  }
+
+  // Fecha de nacimiento: convertir de DD/MM/AAAA a YYYYMMDD
+  if (userData.birthDate && /^\d{2}\/\d{2}\/\d{4}$/.test(userData.birthDate)) {
+    const [day, month, year] = userData.birthDate.split('/');
+    advancedMatching.db = `${year}${month}${day}`;
+  }
+
+  return advancedMatching;
+};
+
+/**
  * Obtiene un vendedor asignado usando round robin desde Supabase
  * @returns {Promise<string>} Número de teléfono del vendedor (10 dígitos, sin +52)
  */
@@ -273,14 +315,22 @@ const handleSubmit = async (event) => {
     vendedorAsignado: assignedPhone,
   });
 
-  // Trackear evento de Lead en Facebook Pixel
+  // Trackear evento de Lead en Facebook Pixel con coincidencias avanzadas
   if (typeof fbq !== 'undefined') {
+    const advancedMatching = prepareAdvancedMatchingData({
+      fullName: validation.fullName,
+      phone: validation.phone,
+      whatsapp: validation.whatsapp,
+      birthDate: validation.birthDate,
+    });
+
     fbq('track', 'Lead', {
       content_name: 'Solicitud de préstamo Mejoravit',
       content_category: 'Préstamo',
       value: 163000,
       currency: 'MXN',
-      source: formData.get("origin") ?? "hero"
+      source: formData.get("origin") ?? "hero",
+      ...advancedMatching, // Incluir datos de coincidencias avanzadas
     });
   }
 
