@@ -46,7 +46,8 @@
       'https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', '1394623042191062', {
         // Los valores se hashean automáticamente por el píxel usando SHA-256
-        // Se actualizarán dinámicamente cuando el usuario complete formularios
+        // Se actualizarán dinámicamente cuando el usuario complete formularios usando fbq('set', 'userData', {...})
+        // Campos disponibles: em (email), ph (teléfono), fn (nombre), ln (apellido), db (fecha nacimiento)
       });
       fbq('track', 'PageView');
     </script>

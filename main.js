@@ -327,6 +327,11 @@ const handleSubmit = async (event) => {
       birthDate: validation.birthDate,
     });
 
+    // Establecer datos de usuario globalmente para todas las futuras llamadas del píxel
+    if (Object.keys(advancedMatching).length > 0) {
+      fbq('set', 'userData', advancedMatching);
+    }
+
     fbq('track', 'Lead', {
       content_name: 'Solicitud de préstamo Mejoravit',
       content_category: 'Préstamo',
