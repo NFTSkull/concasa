@@ -196,7 +196,10 @@ const updateWhatsappLinks = () => {
       
       // Disparamos evento del Pixel cuando el usuario inicia el flujo de WhatsApp desde el botón del hero
       if (origin === "hero" && typeof fbq !== 'undefined') {
-        fbq('trackCustom', 'ClickWhatsApp');
+        fbq('trackCustom', 'ClickWhatsApp', {
+          value: 163000,
+          currency: 'MXN'
+        });
       }
       
       // Guardar la acción pendiente
