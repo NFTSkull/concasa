@@ -1483,10 +1483,10 @@ main {
 .floating-chat {
   position: fixed;
   bottom: 1.5rem;
-  left: 1.5rem;
+  right: 1.5rem;
   background: linear-gradient(135deg, #0ba360 0%, #0f7c5a 100%);
   color: var(--white);
-  padding: 1rem 1.5rem;
+  padding: 0.95rem 1.5rem;
   border-radius: 999px;
   box-shadow: 0 15px 35px rgba(11, 163, 96, 0.4), 0 0 0 0 rgba(11, 163, 96, 0.7);
   font-weight: 700;
@@ -2788,8 +2788,8 @@ main {
   .floating-chat {
     position: fixed;
     bottom: 1.5rem;
-    left: 1.5rem;
-    right: auto;
+    right: 1.5rem;
+    left: auto;
     width: auto;
     max-width: none;
     padding: 0.85rem 1.1rem;
