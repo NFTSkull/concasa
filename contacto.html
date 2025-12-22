@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Contacta con un asesor de Mejora Plus para solicitar tu crédito Mejoravit en Monterrey, Nuevo León."
+    />
+    <title>Contacto | Mejora Plus - Crédito Mejoravit en Monterrey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="mejoraplus.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand">
+        <a href="/">
+          <img src="mejoraplus.png" alt="Mejora Plus" />
+        </a>
+      </div>
+      <nav class="nav-links">
+        <a href="/#mejora-hogar">Mejora tu Hogar</a>
+        <a href="/#proceso">Cómo Funciona</a>
+        <a href="/#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-outline" href="/">
+        Volver al inicio
+      </a>
+    </header>
+
+    <main>
+      <section class="form-section fade-up" style="padding-top: 4rem;">
+        <div class="form-container">
+          <div class="form-header">
+            <p class="eyebrow">Contacta con un asesor</p>
+            <h2>Chatea con un asesor para solicitar tu crédito</h2>
+            <p>Completa el formulario y un asesor se pondrá en contacto contigo para ayudarte a obtener tu crédito Mejoravit con 11% de interés.</p>
+          </div>
+          <form class="contact-form" id="contact-form">
+            <div class="form-row">
+              <label>
+                <span>Nombre completo</span>
+                <input type="text" name="fullName" required minlength="3" placeholder="Ej: Juan Pérez García" />
+                <span class="error" data-error-for="fullName"></span>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Teléfono</span>
+                <input type="tel" name="phone" required placeholder="Ej: 81 1234 5678" />
+                <span class="error" data-error-for="phone"></span>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Email (opcional)</span>
+                <input type="email" name="email" placeholder="Ej: juan@email.com" />
+                <span class="error" data-error-for="email"></span>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Mensaje</span>
+                <textarea name="message" rows="4" placeholder="Cuéntanos cómo podemos ayudarte..." required></textarea>
+                <span class="error" data-error-for="message"></span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large">
+              Enviar mensaje
+            </button>
+            <p class="form-privacy">
+              Al enviar, aceptas que nos comuniquemos contigo. Tus datos son confidenciales y solo se usan para contactarte.
+            </p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <strong>Mejora Plus</strong>
+          <p>Especialistas en crédito Mejoravit en Monterrey, Nuevo León.</p>
+        </div>
+        <div class="footer-location">
+          <h4>Oficinas</h4>
+          <a
+            href="https://maps.app.goo.gl/sUoztmU8zH9u94VJ9"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <p>Mariano Escobedo #574-A Sur</p>
+            <p>Zona Centro · Monterrey, N.L.</p>
+          </a>
+        </div>
+      </div>
+      <p class="copyright">© <span id="current-year"></span> Mejora Plus. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Botón flotante de chat con asesor -->
+    <button class="floating-chat" id="floating-chat-btn" aria-label="Chatear con un asesor para solicitar tu crédito">
+      <svg class="chat-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" fill="currentColor"/>
+        <path d="M7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z" fill="currentColor"/>
+      </svg>
+      <span class="chat-text">Chatear con asesor</span>
+    </button>
+
+    <!-- Respond.io Widget Script -->
+    <!-- This site is converting visitors into subscribers and customers with https://respond.io -->
+    <script id="respondio__widget" src="https://cdn.respond.io/webchat/widget/widget.js?cId=d216adc256738c01a249d752b177b72"></script>
+    <!-- https://respond.io -->
+
+    <script type="module">
+      // Inicializar año
+      const currentYear = document.getElementById("current-year");
+      if (currentYear) {
+        currentYear.textContent = new Date().getFullYear();
+      }
+
+      // Función para abrir el chat de respond.io
+      const openChat = () => {
+        // Intentar múltiples métodos para abrir el widget
+        if (typeof window.RespondIO !== "undefined" && window.RespondIO.open) {
+          window.RespondIO.open();
+          return true;
+        }
+        if (typeof window.respondio !== "undefined" && window.respondio.open) {
+          window.respondio.open();
+          return true;
+        }
+        if (typeof window.RespondioWidget !== "undefined" && window.RespondioWidget.open) {
+          window.RespondioWidget.open();
+          return true;
+        }
+
+        // Buscar el botón del widget
+        const widgetButton = document.querySelector('[id*="respondio"] button, [class*="respondio"] button, [id*="respondio"] > div, [class*="respondio"] > div');
+        if (widgetButton) {
+          widgetButton.click();
+          return true;
+        }
+
+        return false;
+      };
+
+      // Inicializar botón de chat
+      const chatButton = document.getElementById("floating-chat-btn");
+      if (chatButton) {
+        chatButton.addEventListener("click", () => {
+          if (!openChat()) {
+            // Si no se puede abrir, ya estamos en /contacto
+            document.getElementById("contact-form")?.scrollIntoView({ behavior: "smooth" });
+          }
+        });
+      }
+
+      // Manejar formulario de contacto
+      const contactForm = document.getElementById("contact-form");
+      if (contactForm) {
+        contactForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = new FormData(contactForm);
+          alert("Gracias por tu mensaje. Un asesor se pondrá en contacto contigo pronto.");
+          contactForm.reset();
+        });
+      }
+    </script>
+  </body>
+</html>

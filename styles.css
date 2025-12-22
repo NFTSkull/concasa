@@ -35,6 +35,17 @@ body {
   line-height: 1.6;
   background-image: var(--gradient);
   min-height: 100vh;
+  position: relative;
+}
+
+/* Asegurar que el botón flotante esté siempre visible, incluso con overflow hidden en contenedores */
+body > .floating-chat,
+html > body > .floating-chat {
+  position: fixed !important;
+  z-index: 99999 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
 }
 
 img {
@@ -1488,29 +1499,35 @@ main {
   font-size: 1rem;
 }
 
-/* Botón flotante de chat con asesor */
+/* Botón flotante de chat con asesor - SIEMPRE VISIBLE */
 .floating-chat {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  background: linear-gradient(135deg, #0ba360 0%, #0f7c5a 100%);
-  color: var(--white);
-  padding: 0.95rem 1.5rem;
-  border-radius: 999px;
-  box-shadow: 0 15px 35px rgba(11, 163, 96, 0.4), 0 0 0 0 rgba(11, 163, 96, 0.7);
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: all 0.3s ease;
-  animation: chatPulse 2s ease-in-out infinite;
-  pointer-events: auto;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: rgba(11, 163, 96, 0.3);
-  user-select: none;
+  position: fixed !important;
+  bottom: 1.5rem !important;
+  right: 1.5rem !important;
+  background: linear-gradient(135deg, #0ba360 0%, #0f7c5a 100%) !important;
+  color: var(--white) !important;
+  padding: 0.95rem 1.5rem !important;
+  border-radius: 999px !important;
+  box-shadow: 0 15px 35px rgba(11, 163, 96, 0.4), 0 0 0 0 rgba(11, 163, 96, 0.7) !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  transition: all 0.3s ease !important;
+  animation: chatPulse 2s ease-in-out infinite !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: rgba(11, 163, 96, 0.3) !important;
+  user-select: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
 }
 
 @keyframes chatPulse {
@@ -1565,6 +1582,30 @@ main {
   50% {
     transform: translateY(-3px);
   }
+}
+
+/* Reglas adicionales para asegurar que el botón flotante esté SIEMPRE visible */
+.floating-chat,
+#floating-chat-btn {
+  position: fixed !important;
+  z-index: 99999 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+  pointer-events: auto !important;
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
+  transform: none !important;
+}
+
+/* Asegurar que ningún contenedor oculte el botón */
+.hero .floating-chat,
+main .floating-chat,
+section .floating-chat,
+[style*="overflow"] .floating-chat {
+  position: fixed !important;
+  z-index: 99999 !important;
 }
 
 .modal-backdrop {
@@ -2797,27 +2838,31 @@ main {
     box-shadow: 0 4px 12px rgba(11, 163, 96, 0.35);
   }
 
-  /* Botón flotante de chat en móvil */
+  /* Botón flotante de chat en móvil - SIEMPRE VISIBLE */
   .floating-chat {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    left: auto;
-    width: auto;
-    max-width: none;
-    padding: 0.85rem 1.1rem;
-    font-weight: 700;
-    text-align: center;
-    border-radius: 50px;
-    box-shadow: 0 6px 20px rgba(11, 163, 96, 0.4);
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    min-height: auto;
-    transition: all 0.3s ease;
-    animation: chatPulse 2s ease-in-out infinite;
+    position: fixed !important;
+    bottom: 1.5rem !important;
+    right: 1.5rem !important;
+    left: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 0.85rem 1.1rem !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    border-radius: 50px !important;
+    box-shadow: 0 6px 20px rgba(11, 163, 96, 0.4) !important;
+    z-index: 99999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    min-height: auto !important;
+    transition: all 0.3s ease !important;
+    animation: chatPulse 2s ease-in-out infinite !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    overflow: visible !important;
   }
 
   .chat-icon {

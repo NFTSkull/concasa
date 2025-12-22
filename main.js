@@ -704,7 +704,7 @@ const openChat = (origin = "floating-chat") => {
     const widgetButton = document.querySelector(
       '[id*="respondio"] button, [class*="respondio"] button, [id*="respondio"] > div, [class*="respondio"] > div, button[onclick*="respondio"], .respondio-widget-button, [data-respondio]'
     );
-    if (widgetButton) {
+    if (widgetButton && widgetButton.offsetParent !== null) {
       widgetButton.click();
       return true;
     }
@@ -714,16 +714,23 @@ const openChat = (origin = "floating-chat") => {
       '[id*="respondio"], [class*="respondio"], iframe[src*="respond.io"], [data-respondio]'
     );
     for (const element of widgetElements) {
-      if (element.offsetParent !== null) {
+      if (element.offsetParent !== null && element.style.display !== "none") {
         // El elemento es visible
         element.click();
+        // También intentar dispatchEvent
+        const clickEvent = new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
+        element.dispatchEvent(clickEvent);
         return true;
       }
     }
 
     // Método 6: Buscar el iframe y hacer clic en él
     const iframe = document.querySelector('iframe[src*="respond.io"]');
-    if (iframe) {
+    if (iframe && iframe.offsetParent !== null) {
       iframe.click();
       return true;
     }
@@ -739,11 +746,13 @@ const openChat = (origin = "floating-chat") => {
   // Si no funciona, esperar a que el widget se cargue
   let attempts = 0;
   const maxAttempts = 20; // 10 segundos máximo (20 * 500ms)
+  let chatOpened = false;
 
   const checkWidget = setInterval(() => {
     attempts++;
     
     if (tryOpenChat()) {
+      chatOpened = true;
       clearInterval(checkWidget);
       return;
     }
@@ -768,16 +777,21 @@ const openChat = (origin = "floating-chat") => {
           });
           widget.dispatchEvent(clickEvent);
           
+          chatOpened = true;
           clearInterval(checkWidget);
           return;
         }
       }
     }
 
-    // Limpiar después de maxAttempts
+    // Limpiar después de maxAttempts y redirigir a contacto si no se pudo abrir
     if (attempts >= maxAttempts) {
       clearInterval(checkWidget);
-      console.warn("[Chat] No se pudo abrir el widget de respond.io después de múltiples intentos");
+      if (!chatOpened) {
+        console.warn("[Chat] No se pudo abrir el widget de respond.io, redirigiendo a /contacto");
+        // Redirigir a página de contacto como fallback
+        window.location.href = "/contacto.html";
+      }
     }
   }, 500);
 };
