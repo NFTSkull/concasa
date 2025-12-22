@@ -655,6 +655,23 @@ const initVideoAutoplay = () => {
  * @param {string} origin - Origen del evento (ej: 'floating-chat', 'hero')
  */
 const openChat = (origin = "floating-chat") => {
+  // Si el widget no está disponible, redirigir inmediatamente a contacto
+  if (!respondWidgetAvailable && typeof window.__respondWidget === "undefined") {
+    console.warn("[Chat] Widget no disponible, redirigiendo a /contacto.html");
+    // Trackear evento de chat iniciado en Facebook Pixel (fallback)
+    if (typeof fbq !== "undefined") {
+      fbq("trackCustom", "IniciarChat", {
+        content_name: "Chat con asesor para solicitar crédito (fallback)",
+        content_category: "Chat",
+        value: 163000,
+        currency: "MXN",
+        source: origin + "-fallback",
+      });
+    }
+    window.location.href = "/contacto.html";
+    return;
+  }
+
   // Trackear evento de chat iniciado en Facebook Pixel
   if (typeof fbq !== "undefined") {
     fbq("trackCustom", "IniciarChat", {
@@ -849,8 +866,26 @@ const openChat = (origin = "floating-chat") => {
     if (attempts >= maxAttempts) {
       clearInterval(checkWidget);
       if (!chatOpened) {
-        console.warn("[Chat] No se pudo abrir el widget de respond.io, redirigiendo a /contacto");
+        console.warn("[Chat] No se pudo abrir el widget de respond.io después de múltiples intentos, redirigiendo a /contacto");
+        // Marcar widget como no disponible
+        respondWidgetAvailable = false;
         // Redirigir a página de contacto como fallback
+        window.location.href = "/contacto.html";
+      }
+    }
+    
+    // Si detectamos que el widget tiene errores (403, Channel not found), redirigir más rápido
+    if (attempts >= 3 && !chatOpened) {
+      // Verificar si hay errores en la consola relacionados con respond.io
+      const hasRespondError = window.console && (
+        document.querySelector('script[src*="respond.io"]')?.hasAttribute('data-error') ||
+        typeof window.__respondWidget === "undefined"
+      );
+      
+      if (hasRespondError && typeof window.__respondWidget === "undefined") {
+        console.warn("[Chat] Widget de respond.io no disponible (posible error 403 o canal no encontrado), redirigiendo a /contacto");
+        clearInterval(checkWidget);
+        respondWidgetAvailable = false;
         window.location.href = "/contacto.html";
       }
     }
@@ -924,8 +959,48 @@ if (document.readyState === "loading") {
   init();
 }
 
+// Variable global para rastrear si el widget está disponible
+let respondWidgetAvailable = false;
+
+// Detectar si el widget de respond.io está disponible
+const checkRespondWidgetAvailability = () => {
+  // Verificar si hay errores de carga del widget
+  const widgetScript = document.getElementById("respondio__widget");
+  if (widgetScript) {
+    widgetScript.addEventListener("error", () => {
+      console.warn("[Chat] Error al cargar el script de respond.io");
+      respondWidgetAvailable = false;
+    });
+  }
+
+  // Verificar después de un tiempo si el widget está disponible
+  setTimeout(() => {
+    if (typeof window.__respondWidget !== "undefined") {
+      respondWidgetAvailable = true;
+      console.log("[Chat] Widget de respond.io disponible");
+    } else {
+      respondWidgetAvailable = false;
+      console.warn("[Chat] Widget de respond.io NO disponible - usando fallback");
+    }
+  }, 2000);
+};
+
+// Escuchar errores de red relacionados con respond.io
+window.addEventListener("error", (event) => {
+  if (event.message && event.message.includes("respond.io")) {
+    console.warn("[Chat] Error detectado con respond.io:", event.message);
+    respondWidgetAvailable = false;
+  }
+  if (event.filename && event.filename.includes("respond.io")) {
+    console.warn("[Chat] Error al cargar recurso de respond.io");
+    respondWidgetAvailable = false;
+  }
+}, true);
+
 // También intentar inicializar después de que respond.io se cargue
 window.addEventListener("load", () => {
+  checkRespondWidgetAvailability();
+  
   // Re-inicializar los botones de chat después de que todo se haya cargado
   setTimeout(() => {
     const chatButton = document.getElementById("floating-chat-btn");
