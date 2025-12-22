@@ -655,23 +655,6 @@ const initVideoAutoplay = () => {
  * @param {string} origin - Origen del evento (ej: 'floating-chat', 'hero')
  */
 const openChat = (origin = "floating-chat") => {
-  // Si el widget no está disponible, redirigir inmediatamente a contacto
-  if (!respondWidgetAvailable && typeof window.__respondWidget === "undefined") {
-    console.warn("[Chat] Widget no disponible, redirigiendo a /contacto.html");
-    // Trackear evento de chat iniciado en Facebook Pixel (fallback)
-    if (typeof fbq !== "undefined") {
-      fbq("trackCustom", "IniciarChat", {
-        content_name: "Chat con asesor para solicitar crédito (fallback)",
-        content_category: "Chat",
-        value: 163000,
-        currency: "MXN",
-        source: origin + "-fallback",
-      });
-    }
-    window.location.href = "/contacto.html";
-    return;
-  }
-
   // Trackear evento de chat iniciado en Facebook Pixel
   if (typeof fbq !== "undefined") {
     fbq("trackCustom", "IniciarChat", {
@@ -682,6 +665,8 @@ const openChat = (origin = "floating-chat") => {
       source: origin,
     });
   }
+
+  console.log(`[Chat] Intentando abrir chat desde: ${origin}`);
 
   // Función auxiliar para intentar abrir el chat
   const tryOpenChat = () => {
@@ -765,23 +750,57 @@ const openChat = (origin = "floating-chat") => {
       '[id*="respondio-widget"]',
       '[class*="respondio-widget"]',
       'div[role="button"][id*="respondio"]',
-      'div[role="button"][class*="respondio"]'
+      'div[role="button"][class*="respondio"]',
+      // Selectores más específicos para el widget de respond.io
+      'div[id^="respondio"]',
+      'div[class*="widget"]',
+      '[id*="webchat"]',
+      '[class*="webchat"]',
+      'div[style*="position: fixed"]', // Buscar elementos flotantes que puedan ser el widget
     ];
 
     for (const selector of widgetSelectors) {
       const widgetButton = document.querySelector(selector);
-      if (widgetButton && widgetButton.offsetParent !== null && widgetButton.style.display !== "none") {
-        try {
-          widgetButton.click();
-          // También intentar dispatchEvent para asegurar
-          const clickEvent = new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            view: window,
-          });
-          widgetButton.dispatchEvent(clickEvent);
-          return true;
-        } catch (e) {}
+      if (widgetButton) {
+        // Verificar si es visible (más permisivo)
+        const isVisible = widgetButton.offsetParent !== null || 
+                         widgetButton.style.display !== "none" ||
+                         window.getComputedStyle(widgetButton).display !== "none";
+        
+        if (isVisible) {
+          try {
+            console.log(`[Chat] Encontrado widget con selector: ${selector}`);
+            // Hacer clic múltiples veces para asegurar
+            widgetButton.click();
+            widgetButton.click(); // Doble clic para asegurar
+            
+            // También intentar dispatchEvent para asegurar
+            const clickEvent = new MouseEvent("click", {
+              bubbles: true,
+              cancelable: true,
+              view: window,
+            });
+            widgetButton.dispatchEvent(clickEvent);
+            
+            // También intentar con mousedown y mouseup
+            const mouseDownEvent = new MouseEvent("mousedown", {
+              bubbles: true,
+              cancelable: true,
+              view: window,
+            });
+            const mouseUpEvent = new MouseEvent("mouseup", {
+              bubbles: true,
+              cancelable: true,
+              view: window,
+            });
+            widgetButton.dispatchEvent(mouseDownEvent);
+            widgetButton.dispatchEvent(mouseUpEvent);
+            
+            return true;
+          } catch (e) {
+            console.warn(`[Chat] Error al hacer clic en widget con selector ${selector}:`, e);
+          }
+        }
       }
     }
 
@@ -822,8 +841,9 @@ const openChat = (origin = "floating-chat") => {
   }
 
   // Si no funciona, esperar a que el widget se cargue
+  // Aumentar tiempo de espera ya que el widget puede tardar más en desktop
   let attempts = 0;
-  const maxAttempts = 20; // 10 segundos máximo (20 * 500ms)
+  const maxAttempts = 40; // 20 segundos máximo (40 * 500ms) - más tiempo para desktop
   let chatOpened = false;
 
   const checkWidget = setInterval(() => {
@@ -832,37 +852,53 @@ const openChat = (origin = "floating-chat") => {
     if (tryOpenChat()) {
       chatOpened = true;
       clearInterval(checkWidget);
+      console.log(`[Chat] Widget abierto exitosamente después de ${attempts} intentos`);
       return;
     }
 
     // Si hemos intentado muchas veces, buscar el widget de forma más agresiva
-    if (attempts >= 10) {
-      // Buscar cualquier elemento que pueda ser el widget
+    if (attempts >= 5) {
+      // Buscar cualquier elemento que pueda ser el widget - búsqueda más amplia
       const allPossibleWidgets = document.querySelectorAll(
-        'div[id*="respondio"], div[class*="respondio"], button[id*="respondio"], button[class*="respondio"], iframe[src*="respond.io"]'
+        'div[id*="respondio"], div[class*="respondio"], button[id*="respondio"], button[class*="respondio"], iframe[src*="respond.io"], div[id*="webchat"], div[class*="webchat"], div[class*="widget"]'
       );
       
+      if (attempts % 5 === 0) { // Log cada 5 intentos para no saturar
+        console.log(`[Chat] Buscando widget agresivamente... encontrados ${allPossibleWidgets.length} elementos posibles (intento ${attempts})`);
+      }
+      
       for (const widget of allPossibleWidgets) {
-        if (widget.offsetParent !== null || widget.style.display !== "none") {
-          // Intentar hacer clic
-          widget.click();
-          
-          // También intentar dispatchEvent para asegurar que funcione
-          const clickEvent = new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            view: window,
-          });
-          widget.dispatchEvent(clickEvent);
-          
-          chatOpened = true;
-          clearInterval(checkWidget);
-          return;
+        const style = window.getComputedStyle(widget);
+        const isVisible = widget.offsetParent !== null || 
+                         style.display !== "none" ||
+                         style.visibility !== "hidden";
+        
+        if (isVisible) {
+          try {
+            console.log(`[Chat] Intentando abrir widget encontrado:`, widget);
+            // Intentar hacer clic múltiples veces
+            widget.click();
+            widget.click();
+            
+            // También intentar dispatchEvent para asegurar
+            const clickEvent = new MouseEvent("click", {
+              bubbles: true,
+              cancelable: true,
+              view: window,
+            });
+            widget.dispatchEvent(clickEvent);
+            
+            chatOpened = true;
+            clearInterval(checkWidget);
+            return;
+          } catch (e) {
+            console.warn(`[Chat] Error al hacer clic en widget:`, e);
+          }
         }
       }
     }
 
-    // Limpiar después de maxAttempts y redirigir a contacto si no se pudo abrir
+    // Solo redirigir después de muchos intentos y si realmente no se puede abrir
     if (attempts >= maxAttempts) {
       clearInterval(checkWidget);
       if (!chatOpened) {
@@ -870,22 +906,6 @@ const openChat = (origin = "floating-chat") => {
         // Marcar widget como no disponible
         respondWidgetAvailable = false;
         // Redirigir a página de contacto como fallback
-        window.location.href = "/contacto.html";
-      }
-    }
-    
-    // Si detectamos que el widget tiene errores (403, Channel not found), redirigir más rápido
-    if (attempts >= 3 && !chatOpened) {
-      // Verificar si hay errores en la consola relacionados con respond.io
-      const hasRespondError = window.console && (
-        document.querySelector('script[src*="respond.io"]')?.hasAttribute('data-error') ||
-        typeof window.__respondWidget === "undefined"
-      );
-      
-      if (hasRespondError && typeof window.__respondWidget === "undefined") {
-        console.warn("[Chat] Widget de respond.io no disponible (posible error 403 o canal no encontrado), redirigiendo a /contacto");
-        clearInterval(checkWidget);
-        respondWidgetAvailable = false;
         window.location.href = "/contacto.html";
       }
     }
@@ -974,15 +994,16 @@ const checkRespondWidgetAvailability = () => {
   }
 
   // Verificar después de un tiempo si el widget está disponible
+  // Aumentar tiempo de espera para desktop
   setTimeout(() => {
     if (typeof window.__respondWidget !== "undefined") {
       respondWidgetAvailable = true;
       console.log("[Chat] Widget de respond.io disponible");
     } else {
-      respondWidgetAvailable = false;
-      console.warn("[Chat] Widget de respond.io NO disponible - usando fallback");
+      // No marcar como no disponible tan rápido - puede tardar más en cargar
+      console.log("[Chat] Widget de respond.io aún no disponible, pero seguirá intentando...");
     }
-  }, 2000);
+  }, 5000); // Aumentar a 5 segundos para dar más tiempo
 };
 
 // Escuchar errores de red relacionados con respond.io
