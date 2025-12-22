@@ -1603,9 +1603,28 @@ main {
 .hero .floating-chat,
 main .floating-chat,
 section .floating-chat,
-[style*="overflow"] .floating-chat {
+[style*="overflow"] .floating-chat,
+body .floating-chat,
+html .floating-chat {
   position: fixed !important;
   z-index: 99999 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+/* Regla específica para desktop - asegurar visibilidad */
+@media (min-width: 769px) {
+  .floating-chat,
+  #floating-chat-btn {
+    position: fixed !important;
+    bottom: 1.5rem !important;
+    right: 1.5rem !important;
+    z-index: 99999 !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
 }
 
 .modal-backdrop {

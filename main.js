@@ -668,71 +668,132 @@ const openChat = (origin = "floating-chat") => {
 
   // Función auxiliar para intentar abrir el chat
   const tryOpenChat = () => {
-    // Método 1: API global de RespondIO
+    // Método 1: API oficial de respond.io (window.__respondWidget) - PRIMERO
+    if (typeof window.__respondWidget !== "undefined") {
+      console.log("[Chat] window.__respondWidget encontrado");
+      if (typeof window.__respondWidget.open === "function") {
+        try {
+          console.log("[Chat] Usando window.__respondWidget.open()");
+          window.__respondWidget.open();
+          return true;
+        } catch (e) {
+          console.warn("[Chat] Error al usar __respondWidget.open():", e);
+        }
+      }
+      if (typeof window.__respondWidget.toggle === "function") {
+        try {
+          console.log("[Chat] Usando window.__respondWidget.toggle()");
+          window.__respondWidget.toggle();
+          return true;
+        } catch (e) {
+          console.warn("[Chat] Error al usar __respondWidget.toggle():", e);
+        }
+      }
+    } else {
+      console.log("[Chat] window.__respondWidget no está disponible aún");
+    }
+
+    // Método 2: API global de RespondIO (variantes)
     if (typeof window.RespondIO !== "undefined") {
       if (typeof window.RespondIO.open === "function") {
-        window.RespondIO.open();
-        return true;
+        try {
+          window.RespondIO.open();
+          return true;
+        } catch (e) {}
       }
       if (typeof window.RespondIO.show === "function") {
-        window.RespondIO.show();
-        return true;
+        try {
+          window.RespondIO.show();
+          return true;
+        } catch (e) {}
       }
     }
 
-    // Método 2: API en minúsculas
+    // Método 3: API en minúsculas
     if (typeof window.respondio !== "undefined") {
       if (typeof window.respondio.open === "function") {
-        window.respondio.open();
-        return true;
+        try {
+          window.respondio.open();
+          return true;
+        } catch (e) {}
       }
       if (typeof window.respondio.show === "function") {
-        window.respondio.show();
-        return true;
+        try {
+          window.respondio.show();
+          return true;
+        } catch (e) {}
       }
     }
 
-    // Método 3: RespondioWidget
+    // Método 4: RespondioWidget
     if (typeof window.RespondioWidget !== "undefined") {
       if (typeof window.RespondioWidget.open === "function") {
-        window.RespondioWidget.open();
-        return true;
+        try {
+          window.RespondioWidget.open();
+          return true;
+        } catch (e) {}
       }
     }
 
-    // Método 4: Buscar el botón del widget de respond.io (se crea dinámicamente)
-    const widgetButton = document.querySelector(
-      '[id*="respondio"] button, [class*="respondio"] button, [id*="respondio"] > div, [class*="respondio"] > div, button[onclick*="respondio"], .respondio-widget-button, [data-respondio]'
-    );
-    if (widgetButton && widgetButton.offsetParent !== null) {
-      widgetButton.click();
-      return true;
+    // Método 5: Buscar el botón/launcher del widget de respond.io (se crea dinámicamente)
+    // El widget generalmente crea un botón flotante propio
+    const widgetSelectors = [
+      '[id*="respondio"] button',
+      '[class*="respondio"] button',
+      '[id*="respondio"] > div',
+      '[class*="respondio"] > div',
+      'button[onclick*="respondio"]',
+      '.respondio-widget-button',
+      '[data-respondio]',
+      '[id*="respondio-widget"]',
+      '[class*="respondio-widget"]',
+      'div[role="button"][id*="respondio"]',
+      'div[role="button"][class*="respondio"]'
+    ];
+
+    for (const selector of widgetSelectors) {
+      const widgetButton = document.querySelector(selector);
+      if (widgetButton && widgetButton.offsetParent !== null && widgetButton.style.display !== "none") {
+        try {
+          widgetButton.click();
+          // También intentar dispatchEvent para asegurar
+          const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          });
+          widgetButton.dispatchEvent(clickEvent);
+          return true;
+        } catch (e) {}
+      }
     }
 
-    // Método 5: Buscar cualquier elemento clickeable del widget
+    // Método 6: Buscar cualquier elemento clickeable del widget visible
     const widgetElements = document.querySelectorAll(
       '[id*="respondio"], [class*="respondio"], iframe[src*="respond.io"], [data-respondio]'
     );
     for (const element of widgetElements) {
-      if (element.offsetParent !== null && element.style.display !== "none") {
-        // El elemento es visible
-        element.click();
-        // También intentar dispatchEvent
-        const clickEvent = new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-        });
-        element.dispatchEvent(clickEvent);
-        return true;
+      if (element.offsetParent !== null && element.style.display !== "none" && element.style.visibility !== "hidden") {
+        try {
+          element.click();
+          const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          });
+          element.dispatchEvent(clickEvent);
+          return true;
+        } catch (e) {}
       }
     }
 
-    // Método 6: Buscar el iframe y hacer clic en él
+    // Método 7: Buscar el iframe y hacer clic en él
     const iframe = document.querySelector('iframe[src*="respond.io"]');
     if (iframe && iframe.offsetParent !== null) {
-      iframe.click();
-      return true;
+      try {
+        iframe.click();
+        return true;
+      } catch (e) {}
     }
 
     return false;
@@ -799,12 +860,16 @@ const openChat = (origin = "floating-chat") => {
 const initChatButton = () => {
   // Función auxiliar para agregar event listeners que funcionen en móvil y desktop
   const addChatListener = (element, origin) => {
-    if (!element) return;
+    if (!element) {
+      console.warn(`[Chat] Elemento no encontrado para origen: ${origin}`);
+      return;
+    }
 
     // Prevenir el comportamiento por defecto
     const handleChat = (e) => {
       e.preventDefault();
       e.stopPropagation();
+      console.log(`[Chat] Intentando abrir chat desde: ${origin}`);
       openChat(origin);
     };
 
@@ -816,6 +881,8 @@ const initChatButton = () => {
     if (element.tagName === "BUTTON" && !element.type) {
       element.type = "button";
     }
+
+    console.log(`[Chat] Listener agregado correctamente para: ${origin}`);
   };
 
   // Botón flotante de chat
@@ -864,9 +931,35 @@ window.addEventListener("load", () => {
     const chatButton = document.getElementById("floating-chat-btn");
     const heroChatButton = document.getElementById("hero-chat-btn");
     
+    // Forzar visibilidad del botón flotante
+    if (chatButton) {
+      chatButton.style.display = "flex";
+      chatButton.style.visibility = "visible";
+      chatButton.style.opacity = "1";
+      chatButton.style.zIndex = "99999";
+      chatButton.style.position = "fixed";
+      console.log("[Chat] Botón flotante forzado a ser visible");
+    }
+    
     if (chatButton || heroChatButton) {
       initChatButton();
     }
   }, 1000);
 });
+
+// Verificar y forzar visibilidad del botón periódicamente
+setInterval(() => {
+  const chatButton = document.getElementById("floating-chat-btn");
+  if (chatButton) {
+    const computedStyle = window.getComputedStyle(chatButton);
+    if (computedStyle.display === "none" || computedStyle.visibility === "hidden" || computedStyle.opacity === "0") {
+      console.warn("[Chat] Botón estaba oculto, forzando visibilidad");
+      chatButton.style.display = "flex";
+      chatButton.style.visibility = "visible";
+      chatButton.style.opacity = "1";
+      chatButton.style.zIndex = "99999";
+      chatButton.style.position = "fixed";
+    }
+  }
+}, 2000);
 
