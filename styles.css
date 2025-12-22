@@ -340,6 +340,11 @@ main {
   transition: all 0.3s ease;
   text-decoration: none;
   letter-spacing: 0.01em;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(11, 163, 96, 0.3);
+  user-select: none;
 }
 
 .btn-hero-cta:hover {
@@ -426,6 +431,10 @@ main {
   min-width: 220px;
   color: inherit;
   background: none;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(11, 163, 96, 0.3);
+  user-select: none;
 }
 
 .btn-primary {
@@ -1498,6 +1507,10 @@ main {
   gap: 0.75rem;
   transition: all 0.3s ease;
   animation: chatPulse 2s ease-in-out infinite;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(11, 163, 96, 0.3);
+  user-select: none;
 }
 
 @keyframes chatPulse {

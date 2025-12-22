@@ -666,69 +666,193 @@ const openChat = (origin = "floating-chat") => {
     });
   }
 
-  // Intentar abrir el chat de respond.io
-  // Respond.io generalmente expone el widget después de cargar
-  // Intentamos diferentes métodos comunes
-  if (typeof window.RespondIO !== "undefined" && window.RespondIO.open) {
-    window.RespondIO.open();
-  } else if (typeof window.respondio !== "undefined" && window.respondio.open) {
-    window.respondio.open();
-  } else if (typeof window.RespondioWidget !== "undefined" && window.RespondioWidget.open) {
-    window.RespondioWidget.open();
-  } else {
-    // Si no encontramos la API, intentar hacer clic en el widget si existe
-    const respondioWidget = document.querySelector("#respondio__widget, [id*='respondio'], .respondio-widget");
-    if (respondioWidget) {
-      respondioWidget.click();
-    } else {
-      // Esperar a que el widget se cargue y luego intentar abrirlo
-      const checkWidget = setInterval(() => {
-        if (typeof window.RespondIO !== "undefined" && window.RespondIO.open) {
-          window.RespondIO.open();
-          clearInterval(checkWidget);
-        } else if (typeof window.respondio !== "undefined" && window.respondio.open) {
-          window.respondio.open();
-          clearInterval(checkWidget);
-        } else {
-          // Si después de 5 segundos no se carga, intentar hacer clic en cualquier elemento del widget
-          const widgetElement = document.querySelector("[id*='respondio'], .respondio-widget, iframe[src*='respond.io']");
-          if (widgetElement) {
-            widgetElement.click();
-            clearInterval(checkWidget);
-          }
-        }
-      }, 500);
-
-      // Limpiar el intervalo después de 10 segundos
-      setTimeout(() => clearInterval(checkWidget), 10000);
+  // Función auxiliar para intentar abrir el chat
+  const tryOpenChat = () => {
+    // Método 1: API global de RespondIO
+    if (typeof window.RespondIO !== "undefined") {
+      if (typeof window.RespondIO.open === "function") {
+        window.RespondIO.open();
+        return true;
+      }
+      if (typeof window.RespondIO.show === "function") {
+        window.RespondIO.show();
+        return true;
+      }
     }
+
+    // Método 2: API en minúsculas
+    if (typeof window.respondio !== "undefined") {
+      if (typeof window.respondio.open === "function") {
+        window.respondio.open();
+        return true;
+      }
+      if (typeof window.respondio.show === "function") {
+        window.respondio.show();
+        return true;
+      }
+    }
+
+    // Método 3: RespondioWidget
+    if (typeof window.RespondioWidget !== "undefined") {
+      if (typeof window.RespondioWidget.open === "function") {
+        window.RespondioWidget.open();
+        return true;
+      }
+    }
+
+    // Método 4: Buscar el botón del widget de respond.io (se crea dinámicamente)
+    const widgetButton = document.querySelector(
+      '[id*="respondio"] button, [class*="respondio"] button, [id*="respondio"] > div, [class*="respondio"] > div, button[onclick*="respondio"], .respondio-widget-button, [data-respondio]'
+    );
+    if (widgetButton) {
+      widgetButton.click();
+      return true;
+    }
+
+    // Método 5: Buscar cualquier elemento clickeable del widget
+    const widgetElements = document.querySelectorAll(
+      '[id*="respondio"], [class*="respondio"], iframe[src*="respond.io"], [data-respondio]'
+    );
+    for (const element of widgetElements) {
+      if (element.offsetParent !== null) {
+        // El elemento es visible
+        element.click();
+        return true;
+      }
+    }
+
+    // Método 6: Buscar el iframe y hacer clic en él
+    const iframe = document.querySelector('iframe[src*="respond.io"]');
+    if (iframe) {
+      iframe.click();
+      return true;
+    }
+
+    return false;
+  };
+
+  // Intentar abrir inmediatamente
+  if (tryOpenChat()) {
+    return;
   }
+
+  // Si no funciona, esperar a que el widget se cargue
+  let attempts = 0;
+  const maxAttempts = 20; // 10 segundos máximo (20 * 500ms)
+
+  const checkWidget = setInterval(() => {
+    attempts++;
+    
+    if (tryOpenChat()) {
+      clearInterval(checkWidget);
+      return;
+    }
+
+    // Si hemos intentado muchas veces, buscar el widget de forma más agresiva
+    if (attempts >= 10) {
+      // Buscar cualquier elemento que pueda ser el widget
+      const allPossibleWidgets = document.querySelectorAll(
+        'div[id*="respondio"], div[class*="respondio"], button[id*="respondio"], button[class*="respondio"], iframe[src*="respond.io"]'
+      );
+      
+      for (const widget of allPossibleWidgets) {
+        if (widget.offsetParent !== null || widget.style.display !== "none") {
+          // Intentar hacer clic
+          widget.click();
+          
+          // También intentar dispatchEvent para asegurar que funcione
+          const clickEvent = new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          });
+          widget.dispatchEvent(clickEvent);
+          
+          clearInterval(checkWidget);
+          return;
+        }
+      }
+    }
+
+    // Limpiar después de maxAttempts
+    if (attempts >= maxAttempts) {
+      clearInterval(checkWidget);
+      console.warn("[Chat] No se pudo abrir el widget de respond.io después de múltiples intentos");
+    }
+  }, 500);
 };
 
 const initChatButton = () => {
+  // Función auxiliar para agregar event listeners que funcionen en móvil y desktop
+  const addChatListener = (element, origin) => {
+    if (!element) return;
+
+    // Prevenir el comportamiento por defecto
+    const handleChat = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openChat(origin);
+    };
+
+    // Agregar múltiples tipos de eventos para máxima compatibilidad
+    element.addEventListener("click", handleChat, { passive: false });
+    element.addEventListener("touchend", handleChat, { passive: false });
+    
+    // También asegurar que el botón tenga el atributo type si es un button
+    if (element.tagName === "BUTTON" && !element.type) {
+      element.type = "button";
+    }
+  };
+
   // Botón flotante de chat
   const chatButton = document.getElementById("floating-chat-btn");
-  if (chatButton) {
-    chatButton.addEventListener("click", () => {
-      openChat("floating-chat");
-    });
-  }
+  addChatListener(chatButton, "floating-chat");
 
   // Botón del hero para abrir chat
   const heroChatButton = document.getElementById("hero-chat-btn");
-  if (heroChatButton) {
-    heroChatButton.addEventListener("click", () => {
-      openChat("hero");
-    });
-  }
+  addChatListener(heroChatButton, "hero");
+
+  // También buscar por clase por si acaso
+  const chatButtonsByClass = document.querySelectorAll(".floating-chat, #hero-chat-btn");
+  chatButtonsByClass.forEach((btn) => {
+    if (btn.id === "floating-chat-btn") {
+      addChatListener(btn, "floating-chat");
+    } else if (btn.id === "hero-chat-btn") {
+      addChatListener(btn, "hero");
+    }
+  });
 };
 
-updateWhatsappLinks();
-initModal();
-initForm();
-initYear();
-initAnimations();
-initMobileMenu();
-initVideoAutoplay();
-initChatButton();
+// Inicializar funciones cuando el DOM esté listo
+const init = () => {
+  updateWhatsappLinks();
+  initModal();
+  initForm();
+  initYear();
+  initAnimations();
+  initMobileMenu();
+  initVideoAutoplay();
+  initChatButton();
+};
+
+// Ejecutar cuando el DOM esté listo
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  // DOM ya está listo
+  init();
+}
+
+// También intentar inicializar después de que respond.io se cargue
+window.addEventListener("load", () => {
+  // Re-inicializar los botones de chat después de que todo se haya cargado
+  setTimeout(() => {
+    const chatButton = document.getElementById("floating-chat-btn");
+    const heroChatButton = document.getElementById("hero-chat-btn");
+    
+    if (chatButton || heroChatButton) {
+      initChatButton();
+    }
+  }, 1000);
+});
 
