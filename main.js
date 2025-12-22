@@ -650,6 +650,61 @@ const initVideoAutoplay = () => {
   });
 };
 
+const initChatButton = () => {
+  const chatButton = document.getElementById("floating-chat-btn");
+  if (!chatButton) return;
+
+  chatButton.addEventListener("click", () => {
+    // Trackear evento de chat iniciado en Facebook Pixel
+    if (typeof fbq !== "undefined") {
+      fbq("trackCustom", "IniciarChat", {
+        content_name: "Chat con asesor para solicitar crédito",
+        content_category: "Chat",
+        value: 163000,
+        currency: "MXN",
+      });
+    }
+
+    // Intentar abrir el chat de respond.io
+    // Respond.io generalmente expone el widget después de cargar
+    // Intentamos diferentes métodos comunes
+    if (typeof window.RespondIO !== "undefined" && window.RespondIO.open) {
+      window.RespondIO.open();
+    } else if (typeof window.respondio !== "undefined" && window.respondio.open) {
+      window.respondio.open();
+    } else if (typeof window.RespondioWidget !== "undefined" && window.RespondioWidget.open) {
+      window.RespondioWidget.open();
+    } else {
+      // Si no encontramos la API, intentar hacer clic en el widget si existe
+      const respondioWidget = document.querySelector("#respondio__widget, [id*='respondio'], .respondio-widget");
+      if (respondioWidget) {
+        respondioWidget.click();
+      } else {
+        // Esperar a que el widget se cargue y luego intentar abrirlo
+        const checkWidget = setInterval(() => {
+          if (typeof window.RespondIO !== "undefined" && window.RespondIO.open) {
+            window.RespondIO.open();
+            clearInterval(checkWidget);
+          } else if (typeof window.respondio !== "undefined" && window.respondio.open) {
+            window.respondio.open();
+            clearInterval(checkWidget);
+          } else {
+            // Si después de 5 segundos no se carga, intentar hacer clic en cualquier elemento del widget
+            const widgetElement = document.querySelector("[id*='respondio'], .respondio-widget, iframe[src*='respond.io']");
+            if (widgetElement) {
+              widgetElement.click();
+              clearInterval(checkWidget);
+            }
+          }
+        }, 500);
+
+        // Limpiar el intervalo después de 10 segundos
+        setTimeout(() => clearInterval(checkWidget), 10000);
+      }
+    }
+  });
+};
+
 updateWhatsappLinks();
 initModal();
 initForm();
@@ -657,4 +712,5 @@ initYear();
 initAnimations();
 initMobileMenu();
 initVideoAutoplay();
+initChatButton();
 

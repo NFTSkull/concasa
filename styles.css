@@ -1479,6 +1479,81 @@ main {
   font-size: 1rem;
 }
 
+/* Botón flotante de chat con asesor */
+.floating-chat {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  background: linear-gradient(135deg, #0ba360 0%, #0f7c5a 100%);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+  border-radius: 999px;
+  box-shadow: 0 15px 35px rgba(11, 163, 96, 0.4), 0 0 0 0 rgba(11, 163, 96, 0.7);
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  animation: chatPulse 2s ease-in-out infinite;
+}
+
+@keyframes chatPulse {
+  0%, 100% {
+    box-shadow: 0 15px 35px rgba(11, 163, 96, 0.4), 0 0 0 0 rgba(11, 163, 96, 0.7);
+  }
+  50% {
+    box-shadow: 0 15px 35px rgba(11, 163, 96, 0.5), 0 0 0 8px rgba(11, 163, 96, 0);
+  }
+}
+
+.floating-chat:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 20px 45px rgba(11, 163, 96, 0.5), 0 0 0 0 rgba(11, 163, 96, 0.7);
+  animation: none;
+}
+
+.floating-chat:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.chat-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.chat-text {
+  white-space: nowrap;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.chat-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff4444;
+  color: var(--white);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
+  animation: badgeBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes badgeBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -2705,6 +2780,53 @@ main {
   }
 
   .floating-wa:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 12px rgba(11, 163, 96, 0.35);
+  }
+
+  /* Botón flotante de chat en móvil */
+  .floating-chat {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    right: auto;
+    width: auto;
+    max-width: none;
+    padding: 0.85rem 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 50px;
+    box-shadow: 0 6px 20px rgba(11, 163, 96, 0.4);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: auto;
+    transition: all 0.3s ease;
+    animation: chatPulse 2s ease-in-out infinite;
+  }
+
+  .chat-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .chat-text {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .chat-badge {
+    top: -6px;
+    right: -6px;
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .floating-chat:active {
     transform: scale(0.95);
     box-shadow: 0 4px 12px rgba(11, 163, 96, 0.35);
   }
