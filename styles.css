@@ -38,15 +38,6 @@ body {
   position: relative;
 }
 
-/* Asegurar que el botón flotante esté siempre visible, incluso con overflow hidden en contenedores */
-body > .floating-chat,
-html > body > .floating-chat {
-  position: fixed !important;
-  z-index: 99999 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: flex !important;
-}
 
 img {
   max-width: 100%;
@@ -1499,133 +1490,6 @@ main {
   font-size: 1rem;
 }
 
-/* Botón flotante de chat con asesor - SIEMPRE VISIBLE */
-.floating-chat {
-  position: fixed !important;
-  bottom: 1.5rem !important;
-  right: 1.5rem !important;
-  background: linear-gradient(135deg, #0ba360 0%, #0f7c5a 100%) !important;
-  color: var(--white) !important;
-  padding: 0.95rem 1.5rem !important;
-  border-radius: 999px !important;
-  box-shadow: 0 15px 35px rgba(11, 163, 96, 0.4), 0 0 0 0 rgba(11, 163, 96, 0.7) !important;
-  font-weight: 700 !important;
-  border: none !important;
-  cursor: pointer !important;
-  z-index: 99999 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.75rem !important;
-  transition: all 0.3s ease !important;
-  animation: chatPulse 2s ease-in-out infinite !important;
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
-  -webkit-tap-highlight-color: rgba(11, 163, 96, 0.3) !important;
-  user-select: none !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  transform: none !important;
-  overflow: visible !important;
-  clip: auto !important;
-  clip-path: none !important;
-}
-
-@keyframes chatPulse {
-  0%, 100% {
-    box-shadow: 0 15px 35px rgba(11, 163, 96, 0.4), 0 0 0 0 rgba(11, 163, 96, 0.7);
-  }
-  50% {
-    box-shadow: 0 15px 35px rgba(11, 163, 96, 0.5), 0 0 0 8px rgba(11, 163, 96, 0);
-  }
-}
-
-.floating-chat:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 20px 45px rgba(11, 163, 96, 0.5), 0 0 0 0 rgba(11, 163, 96, 0.7);
-  animation: none;
-}
-
-.floating-chat:active {
-  transform: translateY(-1px) scale(1.02);
-}
-
-.chat-icon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.chat-text {
-  white-space: nowrap;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.chat-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #ff4444;
-  color: var(--white);
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
-  animation: badgeBounce 1.5s ease-in-out infinite;
-}
-
-@keyframes badgeBounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-/* Reglas adicionales para asegurar que el botón flotante esté SIEMPRE visible */
-.floating-chat,
-#floating-chat-btn {
-  position: fixed !important;
-  z-index: 99999 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: flex !important;
-  pointer-events: auto !important;
-  overflow: visible !important;
-  clip: auto !important;
-  clip-path: none !important;
-  transform: none !important;
-}
-
-/* Asegurar que ningún contenedor oculte el botón */
-.hero .floating-chat,
-main .floating-chat,
-section .floating-chat,
-[style*="overflow"] .floating-chat,
-body .floating-chat,
-html .floating-chat {
-  position: fixed !important;
-  z-index: 99999 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  display: flex !important;
-}
-
-/* Regla específica para desktop - asegurar visibilidad */
-@media (min-width: 769px) {
-  .floating-chat,
-  #floating-chat-btn {
-    position: fixed !important;
-    bottom: 1.5rem !important;
-    right: 1.5rem !important;
-    z-index: 99999 !important;
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-}
 
 .modal-backdrop {
   position: fixed;
@@ -2857,56 +2721,6 @@ html .floating-chat {
     box-shadow: 0 4px 12px rgba(11, 163, 96, 0.35);
   }
 
-  /* Botón flotante de chat en móvil - SIEMPRE VISIBLE */
-  .floating-chat {
-    position: fixed !important;
-    bottom: 1.5rem !important;
-    right: 1.5rem !important;
-    left: auto !important;
-    width: auto !important;
-    max-width: none !important;
-    padding: 0.85rem 1.1rem !important;
-    font-weight: 700 !important;
-    text-align: center !important;
-    border-radius: 50px !important;
-    box-shadow: 0 6px 20px rgba(11, 163, 96, 0.4) !important;
-    z-index: 99999 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 0.5rem !important;
-    min-height: auto !important;
-    transition: all 0.3s ease !important;
-    animation: chatPulse 2s ease-in-out infinite !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    transform: none !important;
-    overflow: visible !important;
-  }
-
-  .chat-icon {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-  }
-
-  .chat-text {
-    font-size: 0.85rem;
-    white-space: nowrap;
-    font-weight: 600;
-  }
-
-  .chat-badge {
-    top: -6px;
-    right: -6px;
-    font-size: 0.6rem;
-    padding: 0.15rem 0.4rem;
-  }
-
-  .floating-chat:active {
-    transform: scale(0.95);
-    box-shadow: 0 4px 12px rgba(11, 163, 96, 0.35);
-  }
 
   /* Modal */
   .modal-card {
