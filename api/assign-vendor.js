@@ -5,7 +5,16 @@
  * leads entre los 20 vendedores de forma equitativa.
  * 
  * Método: POST
- * Body: (vacío, no se necesitan datos del lead por ahora)
+ * Body: (opcional) Datos del lead para guardar en historial
+ * {
+ *   leadName?: string,
+ *   leadPhone?: string,
+ *   leadWhatsapp?: string,
+ *   leadNss?: string,
+ *   leadBirthDate?: string,
+ *   origenCta?: string,
+ *   ubicacion?: string
+ * }
  * 
  * Respuesta exitosa:
  * {
@@ -137,13 +146,45 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Paso 5: Log de la asignación (para debugging)
+    // Paso 5: Guardar asignación en historial (lead_assignments)
+    try {
+      const leadData = req.body || {};
+      const { error: historyError } = await supabase
+        .from('lead_assignments')
+        .insert({
+          vendor_id: updatedVendor.id,
+          vendor_name: updatedVendor.name,
+          vendor_phone: updatedVendor.phone,
+          lead_name: leadData.leadName || null,
+          lead_phone: leadData.leadPhone || null,
+          lead_whatsapp: leadData.leadWhatsapp || null,
+          lead_nss: leadData.leadNss || null,
+          lead_birth_date: leadData.leadBirthDate || null,
+          origen_cta: leadData.origenCta || null,
+          ubicacion: leadData.ubicacion || null,
+        });
+
+      if (historyError) {
+        // No fallar la asignación si falla el historial, solo loguear
+        console.error('[Error guardando historial]', historyError);
+      } else {
+        console.log(
+          `[Round Robin] Lead asignado a: ${assignedVendor.name} ` +
+          `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count} - Historial guardado`
+        );
+      }
+    } catch (historyErr) {
+      // No fallar la asignación si falla el historial
+      console.error('[Error inesperado guardando historial]', historyErr);
+    }
+
+    // Paso 6: Log de la asignación (para debugging)
     console.log(
       `[Round Robin] Lead asignado a: ${assignedVendor.name} ` +
       `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
     );
 
-    // Paso 6: Retornar respuesta exitosa
+    // Paso 7: Retornar respuesta exitosa
     return res.status(200).json({
       success: true,
       vendor: {

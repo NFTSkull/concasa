@@ -127,16 +127,13 @@ SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key-aqui
 
 ## 📊 Cómo Consultar los Leads por Vendedor
 
-### Opción 1: Desde Supabase Dashboard (Más fácil)
+### Opción 1: Contador Total (Rápido)
 1. Ve a Supabase Dashboard → **"Table Editor"**
 2. Haz clic en la tabla `vendors`
 3. Verás todas las columnas, incluyendo `lead_count`
 4. Puedes ordenar por `lead_count` DESC para ver quién tiene más leads
 
-### Opción 2: Query SQL directo
-1. Ve a **"SQL Editor"**
-2. Ejecuta esta query:
-
+**Query SQL:**
 ```sql
 SELECT 
   name,
@@ -147,11 +144,50 @@ FROM vendors
 ORDER BY lead_count DESC;
 ```
 
+### Opción 2: Historial Completo (Recomendado) ⭐
+Para ver **QUIÉN recibió QUÉ lead** con todos los detalles:
+
+1. **Primero crea la tabla de historial:**
+   - Ve a **SQL Editor**
+   - Ejecuta el script `supabase-lead-history.sql`
+   - Esto crea la tabla `lead_assignments`
+
+2. **Luego consulta el historial:**
+   - Ver el archivo `CONSULTAR_HISTORIAL_LEADS.md` para queries detalladas
+   - Ejemplo rápido:
+
+```sql
+-- Ver todas las asignaciones
+SELECT * FROM lead_assignments ORDER BY assigned_at DESC;
+
+-- Ver asignaciones de un vendedor específico
+SELECT * FROM lead_assignments 
+WHERE vendor_name = 'Cleber' 
+ORDER BY assigned_at DESC;
+
+-- Resumen por vendedor
+SELECT 
+  vendor_name,
+  COUNT(*) as total_leads,
+  COUNT(lead_name) as leads_con_datos
+FROM lead_assignments
+GROUP BY vendor_name
+ORDER BY total_leads DESC;
+```
+
+**Ventajas del historial:**
+- ✅ Ver cada asignación individual con fecha y hora
+- ✅ Ver datos del lead (nombre, teléfono, etc.) si llenó formulario
+- ✅ Ver desde qué botón vino el lead
+- ✅ Consultar por rango de fechas
+- ✅ Exportar a Excel/CSV para análisis
+
 ### Opción 3: Crear un endpoint de reporte (Opcional)
 Si quieres, puedo crear un endpoint `/api/vendors-stats` que retorne un JSON con:
 - Lista de vendedores
 - lead_count de cada uno
 - Total de leads asignados
+- Historial completo
 
 Solo dímelo y lo creo.
 
@@ -202,5 +238,6 @@ Solo dímelo y lo creo.
 3. **Persistencia**: A diferencia de la versión anterior (que se reseteaba en cada deploy), ahora el estado se guarda en Supabase y persiste entre deploys.
 
 4. **Formato de teléfono**: Los números en la BD están sin +52 (solo 10 dígitos). El código agrega el +52 automáticamente al generar el link de WhatsApp.
+
 
 
