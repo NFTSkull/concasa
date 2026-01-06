@@ -20,7 +20,6 @@ const closeModalButton = document.querySelector("[data-close-modal]");
 const form = document.getElementById("lead-form");
 const pageForm = document.getElementById("page-form");
 const originInput = document.getElementById("cta-origin");
-const currentYear = document.getElementById("current-year");
 const locationModal = document.getElementById("location-modal");
 const locationForm = document.getElementById("location-form");
 const whatsappLoading = document.getElementById("whatsapp-loading");
@@ -71,24 +70,15 @@ const prepareAdvancedMatchingData = (userData) => {
 
 /**
  * Obtiene un vendedor asignado usando round robin desde Supabase
- * @param {Object} leadData - Datos opcionales del lead para guardar en historial
- * @param {string} leadData.leadName - Nombre completo del lead
- * @param {string} leadData.leadPhone - Teléfono del lead
- * @param {string} leadData.leadWhatsapp - WhatsApp del lead
- * @param {string} leadData.leadNss - NSS del lead
- * @param {string} leadData.leadBirthDate - Fecha de nacimiento del lead
- * @param {string} leadData.origenCta - Origen del CTA ('hero', 'floating-wa', etc.)
- * @param {string} leadData.ubicacion - Ubicación ('monterrey', 'foraneo')
  * @returns {Promise<string>} Número de teléfono del vendedor (10 dígitos, sin +52)
  */
-const assignVendor = async (leadData = {}) => {
+const assignVendor = async () => {
   try {
     const response = await fetch(API_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(leadData),
     });
 
     if (!response.ok) {
@@ -154,16 +144,11 @@ const proceedToWhatsApp = async (locationType) => {
   toggleWhatsappLoading(true);
 
   try {
+    const assignedPhone = await assignVendor();
     const locationText =
       locationType === "monterrey"
         ? "Soy de Monterrey, Nuevo León"
         : "Soy foráneo pero radico en Monterrey, Nuevo León";
-
-    // Asignar vendedor y guardar en historial (sin datos del lead porque viene de WhatsApp directo)
-    const assignedPhone = await assignVendor({
-      origenCta: origin || "direct-whatsapp",
-      ubicacion: locationType || null,
-    });
 
     const message = `${DEFAULT_MESSAGE}\n\n${locationText}`;
     const url = withWhatsappUrl(message, assignedPhone);
@@ -307,16 +292,8 @@ const handleSubmit = async (event) => {
   const validation = validateForm(formData, formElement);
   if (!validation.isValid) return;
 
-  // Asignar vendedor usando round robin y guardar datos del lead en historial
-  const assignedPhone = await assignVendor({
-    leadName: validation.fullName,
-    leadPhone: validation.phone,
-    leadWhatsapp: validation.whatsapp,
-    leadNss: validation.nss,
-    leadBirthDate: validation.birthDate,
-    origenCta: formData.get("origin") ?? "hero",
-    ubicacion: null, // No aplica en formulario
-  });
+  // Asignar vendedor usando round robin
+  const assignedPhone = await assignVendor();
 
   const message = [
     "Hola, quiero solicitar el préstamo de Subcuenta de Vivienda con 11% de interés.",
@@ -507,11 +484,6 @@ const initModal = () => {
   });
 };
 
-const initYear = () => {
-  if (currentYear) {
-    currentYear.textContent = new Date().getFullYear();
-  }
-};
 
 const initForm = () => {
   form?.addEventListener("submit", handleSubmit);
@@ -678,7 +650,6 @@ const init = () => {
   updateWhatsappLinks();
   initModal();
   initForm();
-  initYear();
   initAnimations();
   initMobileMenu();
   initVideoAutoplay();
