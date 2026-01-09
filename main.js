@@ -5,6 +5,8 @@
  * y la generación de links de WhatsApp.
  */
 
+import { trackWhatsAppClick } from './lib/analytics.js';
+
 // Número por defecto (fallback si el API falla)
 const DEFAULT_WHATSAPP_NUMBER = "8181781697"; // Primer vendedor como fallback
 const DEFAULT_MESSAGE = "Hola, quiero obtener mi préstamo Mejoravit.";
@@ -198,6 +200,16 @@ const updateWhatsappLinks = () => {
         fbq('trackCustom', 'ClickWhatsApp', {
           value: 163000,
           currency: 'MXN'
+        });
+      }
+      
+      // Trackear click de WhatsApp en GA4 (solo para botón del hero)
+      if (origin === "hero") {
+        const linkUrl = link.href || link.getAttribute('href') || window.location.href;
+        trackWhatsAppClick({
+          location: 'hero',
+          url: linkUrl,
+          buttonName: 'Calcular mi monto por WhatsApp'
         });
       }
       
