@@ -5,16 +5,7 @@
  * leads entre los 20 vendedores de forma equitativa.
  * 
  * Método: POST
- * Body: (opcional) Datos del lead para guardar en historial
- * {
- *   leadName?: string,
- *   leadPhone?: string,
- *   leadWhatsapp?: string,
- *   leadNss?: string,
- *   leadBirthDate?: string,
- *   origenCta?: string,
- *   ubicacion?: string
- * }
+ * Body: (vacío, no se necesitan datos del lead por ahora)
  * 
  * Respuesta exitosa:
  * {
@@ -35,6 +26,7 @@
  */
 
 const { getSupabaseClient } = require('../lib/supabaseServer');
+const crypto = require('crypto');
 
 module.exports = async function handler(req, res) {
   // Configurar CORS para permitir peticiones desde el frontend
@@ -146,45 +138,81 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Paso 5: Guardar asignación en historial (lead_assignments)
-    try {
-      const leadData = req.body || {};
-      const { error: historyError } = await supabase
-        .from('lead_assignments')
-        .insert({
-          vendor_id: updatedVendor.id,
-          vendor_name: updatedVendor.name,
-          vendor_phone: updatedVendor.phone,
-          lead_name: leadData.leadName || null,
-          lead_phone: leadData.leadPhone || null,
-          lead_whatsapp: leadData.leadWhatsapp || null,
-          lead_nss: leadData.leadNss || null,
-          lead_birth_date: leadData.leadBirthDate || null,
-          origen_cta: leadData.origenCta || null,
-          ubicacion: leadData.ubicacion || null,
-        });
+    // ============================================
+    // 🎯 HISTORIAL: guardar asignación en lead_assignments
+    // (después de actualizar lead_count, antes del log)
+    // ============================================
 
-      if (historyError) {
-        // No fallar la asignación si falla el historial, solo loguear
-        console.error('[Error guardando historial]', historyError);
-      } else {
-        console.log(
-          `[Round Robin] Lead asignado a: ${assignedVendor.name} ` +
-          `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count} - Historial guardado`
-        );
-      }
-    } catch (historyErr) {
-      // No fallar la asignación si falla el historial
-      console.error('[Error inesperado guardando historial]', historyErr);
+    const userAgent = req.headers["user-agent"] || null;
+
+    // IP (hash, para no guardar IP cruda)
+    const ipRaw =
+      (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
+      req.socket?.remoteAddress ||
+      null;
+
+    const ipHash = ipRaw
+      ? crypto.createHash("sha256").update(ipRaw).digest("hex")
+      : null;
+
+    // Datos opcionales desde el frontend (si los mandas en req.body)
+    const body = req.body || {};
+    const {
+      channel = "web",
+      event_name = "lead",
+      fbclid = null,
+      gclid = null,
+      utm_source = null,
+      utm_medium = null,
+      utm_campaign = null,
+      utm_content = null,
+      utm_term = null,
+      landing_path = null,
+    } = body;
+
+    // Crear payload explícito para el insert
+    const payload = {
+      vendor_id: updatedVendor.id,
+      vendor_name: updatedVendor.name,
+      vendor_phone: updatedVendor.phone,
+
+      channel,
+      event_name,
+
+      fbclid,
+      gclid,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_content,
+      utm_term,
+
+      landing_path,
+      user_agent: userAgent,
+      ip_hash: ipHash,
+    };
+
+    // Logging para debugging
+    console.log("[lead_assignments payload keys]", Object.keys(payload));
+    console.log("[req.body keys]", req.body ? Object.keys(req.body) : null);
+    console.log("[req.body raw]", req.body);
+
+    const { error: insertHistoryError } = await supabase
+      .from("lead_assignments")
+      .insert(payload);
+
+    if (insertHistoryError) {
+      // NO rompas la asignación si falla el historial: solo loguea
+      console.error("[Error insertando lead_assignments]", insertHistoryError);
     }
 
-    // Paso 6: Log de la asignación (para debugging)
+    // Paso 5: Log de la asignación (para debugging)
     console.log(
       `[Round Robin] Lead asignado a: ${assignedVendor.name} ` +
       `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
     );
 
-    // Paso 7: Retornar respuesta exitosa
+    // Paso 6: Retornar respuesta exitosa
     return res.status(200).json({
       success: true,
       vendor: {
