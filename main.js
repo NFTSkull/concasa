@@ -5,28 +5,40 @@
  * y la generación de links de WhatsApp.
  */
 
-import { trackWhatsAppClick } from './lib/analytics.js';
-
-// Número por defecto (fallback si el API falla)
-const DEFAULT_WHATSAPP_NUMBER = "8181781697"; // Primer vendedor como fallback
-const DEFAULT_MESSAGE = "Hola, quiero obtener mi préstamo Mejoravit.";
+import { trackWhatsAppClick } from "./lib/analytics.js";
+import {
+  DEFAULT_MESSAGE,
+  DEFAULT_WHATSAPP_NUMBER,
+  withWhatsappUrl,
+} from "./lib/whatsapp.js";
 
 // API endpoint para asignar vendedor
 const API_ENDPOINT = "/api/assign-vendor";
 
-const whatsappLinks = document.querySelectorAll("[data-whatsapp-link]");
+/** @type {NodeListOf<HTMLAnchorElement>} */
+const whatsappLinks = document.querySelectorAll("a[data-whatsapp-link]");
+/** @type {HTMLElement | null} */
 const modal = document.getElementById("lead-modal");
+/** @type {HTMLElement | null} */
 const modalTitle = document.getElementById("modal-title");
 const openModalButtons = document.querySelectorAll("[data-open-modal]");
 const closeModalButton = document.querySelector("[data-close-modal]");
-const form = document.getElementById("lead-form");
-const pageForm = document.getElementById("page-form");
-const originInput = document.getElementById("cta-origin");
-const locationModal = document.getElementById("location-modal");
-const locationForm = document.getElementById("location-form");
+/** @type {HTMLFormElement | null} */
+const form = /** @type {HTMLFormElement | null} */ (
+  document.getElementById("lead-form")
+);
+/** @type {HTMLFormElement | null} */
+const pageForm = /** @type {HTMLFormElement | null} */ (
+  document.getElementById("page-form")
+);
+/** @type {HTMLInputElement | null} */
+const originInput = /** @type {HTMLInputElement | null} */ (
+  document.getElementById("cta-origin")
+);
+/** @type {HTMLElement | null} */
 const whatsappLoading = document.getElementById("whatsapp-loading");
+/** @type {Array<Record<string, unknown>>} */
 const actionLog = [];
-let pendingWhatsappAction = null; // Guarda la acción de WhatsApp pendiente
 
 /**
  * Prepara los datos de coincidencias avanzadas para Meta Pixel
@@ -106,29 +118,12 @@ const assignVendor = async () => {
   }
 };
 
-/**
- * Genera la URL de WhatsApp con el formato correcto
- * @param {string} text - Mensaje a enviar
- * @param {string} phoneNumber - Número de teléfono (10 dígitos, sin +52)
- * @returns {string} URL completa de WhatsApp
- */
-const withWhatsappUrl = (text, phoneNumber = null) => {
-  // El número viene sin +52, así que lo agregamos
-  const number = phoneNumber ? `52${phoneNumber}` : `52${DEFAULT_WHATSAPP_NUMBER}`;
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
-};
+// `withWhatsappUrl` vive en `lib/whatsapp.js` para poder probarse sin DOM.
 
 const toggleModal = (isOpen) => {
   if (!modal) return;
   modal.classList.toggle("hidden", !isOpen);
   modal.setAttribute("aria-hidden", String(!isOpen));
-  document.body.style.overflow = isOpen ? "hidden" : "";
-};
-
-const toggleLocationModal = (isOpen) => {
-  if (!locationModal) return;
-  locationModal.classList.toggle("hidden", !isOpen);
-  locationModal.setAttribute("aria-hidden", String(!isOpen));
   document.body.style.overflow = isOpen ? "hidden" : "";
 };
 
@@ -138,28 +133,18 @@ const toggleWhatsappLoading = (isVisible) => {
   whatsappLoading.setAttribute("aria-hidden", String(!isVisible));
 };
 
-const proceedToWhatsApp = async (locationType) => {
-  if (!pendingWhatsappAction) return;
-  const { link, origin } = pendingWhatsappAction;
-  pendingWhatsappAction = null;
-
+const proceedToWhatsAppDirect = async (origin) => {
   toggleWhatsappLoading(true);
 
   try {
     const assignedPhone = await assignVendor();
-    const locationText =
-      locationType === "monterrey"
-        ? "Soy de Monterrey, Nuevo León"
-        : "Soy foráneo pero radico en Monterrey, Nuevo León";
-
-    const message = `${DEFAULT_MESSAGE}\n\n${locationText}`;
+    const message = DEFAULT_MESSAGE;
     const url = withWhatsappUrl(message, assignedPhone);
 
     logLeadAction({
       timestamp: new Date().toISOString(),
       origenCTA: origin || "direct-whatsapp",
       vendedorAsignado: assignedPhone,
-      ubicacion: locationText,
     });
 
     // Trackear evento de Lead en Facebook Pixel
@@ -173,8 +158,16 @@ const proceedToWhatsApp = async (locationType) => {
       });
     }
 
-    // Usar location.href en lugar de window.open mejora compatibilidad
-    // con navegadores móviles (especialmente Safari en iOS)
+    // Trackear click de WhatsApp en GA4 (solo para botón del hero)
+    if (origin === "hero") {
+      trackWhatsAppClick({
+        location: "hero",
+        url,
+        buttonName: "Calcular mi monto por WhatsApp",
+      });
+    }
+
+    // Redirigir en la misma pestaña para máxima compatibilidad móvil
     window.location.href = url;
   } catch (error) {
     console.error("[WhatsApp flow error]", error);
@@ -184,7 +177,11 @@ const proceedToWhatsApp = async (locationType) => {
 
 const updateWhatsappLinks = () => {
   whatsappLinks.forEach((link) => {
-    // Agregar event listener para mostrar modal de ubicación primero
+    // Fallback: si el JS no llega a ejecutar el flujo async, al menos existe un href válido.
+    // Nota: el número final se asigna por round robin al hacer click.
+    link.href = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
+
+    // Agregar event listener para redirigir directo a WhatsApp
     link.addEventListener("click", async (e) => {
       e.preventDefault();
       
@@ -203,21 +200,7 @@ const updateWhatsappLinks = () => {
         });
       }
       
-      // Trackear click de WhatsApp en GA4 (solo para botón del hero)
-      if (origin === "hero") {
-        const linkUrl = link.href || link.getAttribute('href') || window.location.href;
-        trackWhatsAppClick({
-          location: 'hero',
-          url: linkUrl,
-          buttonName: 'Calcular mi monto por WhatsApp'
-        });
-      }
-      
-      // Guardar la acción pendiente
-      pendingWhatsappAction = { link, origin };
-      
-      // Mostrar modal de ubicación
-      toggleLocationModal(true);
+      await proceedToWhatsAppDirect(origin);
     });
   });
 };
@@ -394,7 +377,10 @@ const initModal = () => {
       // Manejar modal de lead
       setModalOrigin(modalType);
       toggleModal(true);
-      const firstInput = form.querySelector("input[name='fullName']");
+      /** @type {HTMLInputElement | null} */
+      const firstInput = /** @type {HTMLInputElement | null} */ (
+        form?.querySelector("input[name='fullName']")
+      );
       firstInput?.focus();
     });
   });
@@ -433,59 +419,10 @@ const initModal = () => {
     });
   });
 
-  // Manejar formulario de ubicación - se envía automáticamente al seleccionar una opción
-  if (locationForm) {
-    const locationInputs = locationForm.querySelectorAll('input[name="location"]');
-    locationInputs.forEach((input) => {
-      input.addEventListener("change", (e) => {
-        if (e.target.checked) {
-          // Pequeño delay para mejor UX
-          setTimeout(() => {
-            toggleLocationModal(false);
-            proceedToWhatsApp(e.target.value);
-          }, 300);
-        }
-      });
-    });
-
-    // También mantener el submit por si acaso
-    locationForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const selectedLocation = locationForm.querySelector('input[name="location"]:checked');
-      if (selectedLocation) {
-        toggleLocationModal(false);
-        proceedToWhatsApp(selectedLocation.value);
-      }
-    });
-  }
-
-  // Cerrar modal de ubicación
-  const closeLocationButtons = document.querySelectorAll("[data-close-location-modal]");
-  closeLocationButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      toggleLocationModal(false);
-      pendingWhatsappAction = null;
-    });
-  });
-
-  // Cerrar modal de ubicación al hacer clic fuera
-  if (locationModal) {
-    locationModal.addEventListener("click", (event) => {
-      if (event.target === locationModal) {
-        toggleLocationModal(false);
-        pendingWhatsappAction = null;
-      }
-    });
-  }
-
   // Cerrar cualquier modal con ESC
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       toggleModal(false);
-      if (locationModal && !locationModal.classList.contains("hidden")) {
-        toggleLocationModal(false);
-        pendingWhatsappAction = null;
-      }
       if (privacidadModal && !privacidadModal.classList.contains("hidden")) {
         toggleLegalModal("privacidad-modal", false);
       }
@@ -569,7 +506,10 @@ const initMobileMenu = () => {
 
 const initVideoAutoplay = () => {
   const videoSection = document.getElementById("video-explicativo");
-  const video = document.getElementById("video-prestamo");
+  /** @type {HTMLVideoElement | null} */
+  const video = /** @type {HTMLVideoElement | null} */ (
+    document.getElementById("video-prestamo")
+  );
   
   if (!videoSection || !video) return;
 
@@ -587,7 +527,7 @@ const initVideoAutoplay = () => {
       <p>No se pudo cargar el video. Por favor, intenta recargar la página.</p>
       <p>Si el problema persiste, asegúrate de que el archivo esté disponible.</p>
     `;
-    video.parentElement.appendChild(errorMsg);
+    video.parentElement?.appendChild(errorMsg);
   });
 
   // Intentar cargar el video
@@ -611,7 +551,7 @@ const initVideoAutoplay = () => {
               // Reproducción exitosa
               console.log("Video reproduciéndose automáticamente");
             })
-            .catch((error) => {
+            .catch(() => {
               // Autoplay bloqueado, el usuario debe iniciar manualmente
               console.log("Autoplay bloqueado por el navegador. El usuario debe iniciar manualmente.");
               // Intentar reproducir sin sonido (muted)

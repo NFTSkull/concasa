@@ -15,3 +15,7 @@
 - Se rediseñó la UI para ofrecer una experiencia premium y persuasiva (hero con panel de métricas, strip de confianza, panel de contacto y layout modular sin emojis).
 - Se modernizó la capa visual (`styles.css`) con gradientes, cards y tipografía consistente; se actualizaron los CTAs y se agregaron nuevos puntos de contacto.
 
+## B3 - 2026-01-10
+- Se eliminó el mini formulario de ubicación (Monterrey/foráneo) en el CTA de “Calcular mi monto por WhatsApp”.
+- Ahora los botones de WhatsApp dirigen directamente al chat (manteniendo round robin, `action_log` y tracking).
+

@@ -1,5 +1,6 @@
 {
-  "extends": ["next/core-web-vitals"]
+  "//": "Migrado a eslint.config.js (ESLint v9). Este archivo se mantiene vacío para evitar confusión en editores.",
+  "extends": []
 }
 
 

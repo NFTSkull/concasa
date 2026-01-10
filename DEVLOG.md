@@ -18,3 +18,7 @@
 - **Copy:** Se reforzó el mensaje persuasivo resaltando beneficios tangibles, tiempos y condiciones sin usar emojis; todos los CTAs conducen a WhatsApp o al modal.
 - **Estilos:** `styles.css` ahora maneja gradientes, sombras suaves, badges y animaciones `fade-up` controladas con IntersectionObserver.
 
+## 2026-01-10 — B3
+- **Decisión UX:** Se eliminó la confirmación de ubicación (Monterrey/foráneo) para reducir fricción en el CTA “Calcular mi monto por WhatsApp”.
+- **Implementación:** Los CTAs con `data-whatsapp-link` ahora asignan vendedor por round robin y redirigen directo a WhatsApp con mensaje base (sin pasos intermedios), registrando en `action_log`.
+
