@@ -5,7 +5,7 @@
  * y la generación de links de WhatsApp.
  */
 
-import { trackWhatsAppClick } from "./lib/analytics.js";
+import { trackWhatsAppClick, trackGoogleAdsConversion } from "./lib/analytics.js";
 import {
   DEFAULT_MESSAGE,
   DEFAULT_WHATSAPP_NUMBER,
@@ -336,17 +336,28 @@ const handleSubmit = async (event) => {
     });
   }
 
-  const whatsappUrl = withWhatsappUrl(message, assignedPhone);
+  // Disparar evento de conversión de Google Ads
+  trackGoogleAdsConversion({
+    value: 163000,
+    currency: 'MXN',
+  });
 
-  // Redirigir en la misma pestaña para máxima compatibilidad móvil
-  window.location.href = whatsappUrl;
+  // Guardar datos en sessionStorage para la página de gracias (opcional)
+  const whatsappUrl = withWhatsappUrl(message, assignedPhone);
+  try {
+    sessionStorage.setItem('whatsappUrl', whatsappUrl);
+  } catch (e) {
+    // Ignorar errores de sessionStorage (puede fallar en modo incógnito)
+    console.warn('[handleSubmit] No se pudo guardar en sessionStorage', e);
+  }
+
+  // Redirigir a página de agradecimiento
+  window.location.href = '/gracias.html';
 
   formElement.reset();
   
   if (formElement === form) {
     toggleModal(false);
-  } else {
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 };
 
