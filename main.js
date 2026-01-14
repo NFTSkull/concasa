@@ -45,17 +45,16 @@ const actionLog = [];
  * Los valores se hashean automáticamente por el píxel usando SHA-256
  * @param {Object} userData - Datos del usuario
  * @param {string} userData.fullName - Nombre completo
- * @param {string} userData.phone - Teléfono
  * @param {string} userData.whatsapp - WhatsApp
- * @param {string} userData.birthDate - Fecha de nacimiento (DD/MM/AAAA)
+ * @param {string} userData.birthDate - Fecha de nacimiento (YYYY-MM-DD)
  * @returns {Object} Objeto con datos de coincidencias avanzadas
  */
 const prepareAdvancedMatchingData = (userData) => {
   const advancedMatching = {};
 
-  // Teléfono: normalizar (solo números, sin espacios ni caracteres especiales)
-  if (userData.phone) {
-    const normalizedPhone = userData.phone.replace(/\D/g, '');
+  // Teléfono: usar WhatsApp normalizado (solo números, sin espacios ni caracteres especiales)
+  if (userData.whatsapp) {
+    const normalizedPhone = userData.whatsapp.replace(/\D/g, '');
     if (normalizedPhone.length >= 10) {
       advancedMatching.ph = normalizedPhone;
     }
@@ -73,9 +72,9 @@ const prepareAdvancedMatchingData = (userData) => {
     }
   }
 
-  // Fecha de nacimiento: convertir de DD/MM/AAAA a YYYYMMDD
-  if (userData.birthDate && /^\d{2}\/\d{2}\/\d{4}$/.test(userData.birthDate)) {
-    const [day, month, year] = userData.birthDate.split('/');
+  // Fecha de nacimiento: convertir de YYYY-MM-DD a YYYYMMDD
+  if (userData.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(userData.birthDate)) {
+    const [year, month, day] = userData.birthDate.split('-');
     advancedMatching.db = `${year}${month}${day}`;
   }
 
@@ -237,7 +236,6 @@ const validateForm = (data, formElement) => {
   const fullName = data.get("fullName")?.trim() ?? "";
   const nss = data.get("nss")?.trim() ?? "";
   const birthDate = data.get("birthDate")?.trim() ?? "";
-  const phone = data.get("phone")?.trim() ?? "";
   const whatsapp = data.get("whatsapp")?.trim() ?? "";
 
   if (fullName.length < 3) {
@@ -248,12 +246,8 @@ const validateForm = (data, formElement) => {
     showError("nss", "Ingresa tu número de afiliación (solo números).", formElement);
     isValid = false;
   }
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(birthDate)) {
-    showError("birthDate", "Formato DD/MM/AAAA.", formElement);
-    isValid = false;
-  }
-  if (phone.length < 10) {
-    showError("phone", "Incluye lada a 10 dígitos.", formElement);
+  if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+    showError("birthDate", "Selecciona tu fecha de nacimiento.", formElement);
     isValid = false;
   }
   if (whatsapp.length < 10) {
@@ -266,7 +260,6 @@ const validateForm = (data, formElement) => {
     fullName,
     nss,
     birthDate,
-    phone,
     whatsapp,
   };
 };
@@ -290,6 +283,13 @@ const handleSubmit = async (event) => {
   // Asignar vendedor usando round robin
   const assignedPhone = await assignVendor();
 
+  // Convertir fecha de YYYY-MM-DD a DD/MM/AAAA para el mensaje
+  const formatDateForMessage = (dateStr) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
   const message = [
     "Hola, quiero solicitar el préstamo de Subcuenta de Vivienda con 11% de interés.",
     "",
@@ -298,8 +298,7 @@ const handleSubmit = async (event) => {
     "Mis datos son:",
     `Nombre completo: ${validation.fullName}`,
     `Número de afiliación IMSS: ${validation.nss}`,
-    `Fecha de nacimiento: ${validation.birthDate}`,
-    `Teléfono: ${validation.phone}`,
+    `Fecha de nacimiento: ${formatDateForMessage(validation.birthDate)}`,
     `WhatsApp: ${validation.whatsapp}`,
     "",
     "Gracias.",
@@ -316,7 +315,6 @@ const handleSubmit = async (event) => {
   if (typeof fbq !== 'undefined') {
     const advancedMatching = prepareAdvancedMatchingData({
       fullName: validation.fullName,
-      phone: validation.phone,
       whatsapp: validation.whatsapp,
       birthDate: validation.birthDate,
     });
