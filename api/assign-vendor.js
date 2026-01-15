@@ -177,19 +177,14 @@ module.exports = async function handler(req, res) {
       origen_cta = null,
     } = body;
 
-    // Helpers para sanitización
-    const cleanText = (value) => {
+    // Helper para normalizar strings (trim y null si queda vacío)
+    const normalizeString = (value) => {
       if (!value) return null;
       const trimmed = String(value).trim();
       return trimmed || null;
     };
 
-    const onlyDigits = (value) => {
-      if (!value) return null;
-      const digitsOnly = String(value).replace(/\D/g, '');
-      return digitsOnly || null;
-    };
-
+    // Helper para normalizar fecha a YYYY-MM-DD
     const normalizeDate = (value) => {
       if (!value) return null;
       const dateStr = String(value).trim();
@@ -232,22 +227,23 @@ module.exports = async function handler(req, res) {
       user_agent: userAgent,
       ip_hash: ipHash,
       
-      // Datos del formulario (sanitizados)
-      lead_name: cleanText(lead_full_name),
-      lead_nss: onlyDigits(lead_imss),
+      // Datos del formulario (normalizados)
+      lead_name: normalizeString(lead_full_name),
+      lead_nss: normalizeString(lead_imss),
       lead_birth_date: normalizeDate(lead_birth_date),
-      lead_whatsapp: onlyDigits(lead_whatsapp),
+      lead_whatsapp: normalizeString(lead_whatsapp),
       origen_cta: origen_cta || null,
     };
 
     // Logging para debugging
-    console.log("[lead_assignments payload keys]", Object.keys(payload));
     console.log("[req.body keys]", req.body ? Object.keys(req.body) : null);
-    console.log("[req.body raw]", req.body);
+    console.log("[payload keys]", Object.keys(payload));
 
-    const { error: insertHistoryError } = await supabase
+    const { data: insertedLead, error: insertHistoryError } = await supabase
       .from("lead_assignments")
-      .insert(payload);
+      .insert(payload)
+      .select('id')
+      .single();
 
     if (insertHistoryError) {
       // NO rompas la asignación si falla el historial: solo loguea
@@ -268,7 +264,8 @@ module.exports = async function handler(req, res) {
         name: updatedVendor.name,
         phone: updatedVendor.phone,
         lead_count: updatedVendor.lead_count
-      }
+      },
+      lead_assignment_id: insertedLead?.id || null
     });
 
   } catch (error) {

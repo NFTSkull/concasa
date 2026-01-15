@@ -95,10 +95,12 @@ const assignVendor = async (formData = null) => {
   try {
     const body = formData ? {
       lead_full_name: formData.lead_full_name || null,
-      lead_whatsapp: formData.lead_whatsapp || null,
       lead_imss: formData.lead_imss || null,
       lead_birth_date: formData.lead_birth_date || null,
-      origen_cta: formData.origen_cta || null,
+      lead_whatsapp: formData.lead_whatsapp || null,
+      channel: "web",
+      event_name: "form_submit",
+      landing_path: typeof window !== 'undefined' ? window.location.pathname : null,
     } : {};
     
     const response = await fetch(API_ENDPOINT, {
