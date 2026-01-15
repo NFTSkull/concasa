@@ -51,10 +51,11 @@ module.exports = async function handler(req, res) {
     // Obtener cliente de Supabase
     const supabase = getSupabaseClient();
 
-    // Paso 1: Obtener todos los vendedores ordenados por order_index
+    // Paso 1: Obtener todos los vendedores activos ordenados por order_index
     const { data: vendors, error: vendorsError } = await supabase
       .from('vendors')
       .select('*')
+      .eq('is_active', true)
       .order('order_index', { ascending: true });
 
     if (vendorsError) {
