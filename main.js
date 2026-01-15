@@ -84,19 +84,19 @@ const prepareAdvancedMatchingData = (userData) => {
 /**
  * Obtiene un vendedor asignado usando round robin desde Supabase
  * @param {Object} [formData] - Datos opcionales del formulario para guardar en BD
- * @param {string} [formData.lead_name] - Nombre completo del lead
+ * @param {string} [formData.lead_full_name] - Nombre completo del lead
  * @param {string} [formData.lead_whatsapp] - WhatsApp del lead
- * @param {string} [formData.lead_nss] - Número de afiliación IMSS
- * @param {string} [formData.lead_birth_date] - Fecha de nacimiento (YYYY-MM-DD)
+ * @param {string} [formData.lead_imss] - Número de afiliación IMSS
+ * @param {string} [formData.lead_birth_date] - Fecha de nacimiento (YYYY-MM-DD o DD/MM/YYYY)
  * @param {string} [formData.origen_cta] - Origen del CTA (ej: 'formulario-pagina')
  * @returns {Promise<string>} Número de teléfono del vendedor (10 dígitos, sin +52)
  */
 const assignVendor = async (formData = null) => {
   try {
     const body = formData ? {
-      lead_name: formData.lead_name || null,
+      lead_full_name: formData.lead_full_name || null,
       lead_whatsapp: formData.lead_whatsapp || null,
-      lead_nss: formData.lead_nss || null,
+      lead_imss: formData.lead_imss || null,
       lead_birth_date: formData.lead_birth_date || null,
       origen_cta: formData.origen_cta || null,
     } : {};
@@ -298,9 +298,9 @@ const handleSubmit = async (event) => {
   // Preparar datos del formulario para guardar en BD
   const originCTA = formData.get("origin");
   const formDataForDB = {
-    lead_name: validation.fullName,
+    lead_full_name: validation.fullName,
     lead_whatsapp: validation.whatsapp,
-    lead_nss: validation.nss,
+    lead_imss: validation.nss,
     lead_birth_date: validation.birthDate,
     origen_cta: typeof originCTA === 'string' ? originCTA : "hero",
   };

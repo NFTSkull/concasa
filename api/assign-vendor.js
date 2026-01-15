@@ -170,12 +170,52 @@ module.exports = async function handler(req, res) {
       utm_term = null,
       landing_path = null,
       // Datos del formulario (opcionales)
-      lead_name = null,
-      lead_whatsapp = null,
-      lead_nss = null,
+      lead_full_name = null,
+      lead_imss = null,
       lead_birth_date = null,
+      lead_whatsapp = null,
       origen_cta = null,
     } = body;
+
+    // Funciones helper para sanitización
+    const sanitizeDigits = (value) => {
+      if (!value) return null;
+      const digitsOnly = String(value).replace(/\D/g, '');
+      return digitsOnly || null;
+    };
+
+    const sanitizeName = (value) => {
+      if (!value) return null;
+      const trimmed = String(value).trim();
+      return trimmed || null;
+    };
+
+    const normalizeDate = (value) => {
+      if (!value) return null;
+      const dateStr = String(value).trim();
+      
+      // Intentar formato DD/MM/YYYY
+      const ddMMyyyyMatch = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (ddMMyyyyMatch) {
+        const [, day, month, year] = ddMMyyyyMatch;
+        return `${year}-${month}-${day}`;
+      }
+      
+      // Intentar formato YYYY-MM-DD
+      const yyyyMMddMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (yyyyMMddMatch) {
+        return dateStr;
+      }
+      
+      // Si no cumple ningún formato, retornar null
+      return null;
+    };
+
+    // Sanitizar datos del formulario
+    const sanitizedLeadFullName = sanitizeName(lead_full_name);
+    const sanitizedLeadImss = sanitizeDigits(lead_imss);
+    const sanitizedLeadWhatsapp = sanitizeDigits(lead_whatsapp);
+    const sanitizedLeadBirthDate = normalizeDate(lead_birth_date);
 
     // Crear payload explícito para el insert
     const payload = {
@@ -198,11 +238,11 @@ module.exports = async function handler(req, res) {
       user_agent: userAgent,
       ip_hash: ipHash,
       
-      // Datos del formulario
-      lead_name: lead_name || null,
-      lead_whatsapp: lead_whatsapp || null,
-      lead_nss: lead_nss || null,
-      lead_birth_date: lead_birth_date || null,
+      // Datos del formulario (sanitizados)
+      lead_name: sanitizedLeadFullName,
+      lead_nss: sanitizedLeadImss,
+      lead_birth_date: sanitizedLeadBirthDate,
+      lead_whatsapp: sanitizedLeadWhatsapp,
       origen_cta: origen_cta || null,
     };
 
