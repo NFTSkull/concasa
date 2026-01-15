@@ -105,14 +105,18 @@
       // Redirigir automáticamente a WhatsApp después de 2 segundos
       const redirectToWhatsApp = () => {
         try {
-          const whatsappUrl = sessionStorage.getItem('redirectToWhatsApp');
-          if (whatsappUrl) {
-            // Limpiar sessionStorage
-            sessionStorage.removeItem('redirectToWhatsApp');
-            sessionStorage.removeItem('whatsappUrl');
-            // Redirigir a WhatsApp
-            window.location.href = whatsappUrl;
+          let whatsappUrl = sessionStorage.getItem('wa_redirect_url');
+          
+          // Si no existe, usar fallback genérico
+          if (!whatsappUrl) {
+            whatsappUrl = 'https://wa.me/528181781697?text=' + encodeURIComponent('Hola, quiero obtener mi préstamo Mejoravit.');
           }
+          
+          // Limpiar sessionStorage
+          sessionStorage.removeItem('wa_redirect_url');
+          
+          // Redirigir a WhatsApp
+          window.location.href = whatsappUrl;
         } catch (e) {
           console.warn('[gracias.html] Error al redirigir a WhatsApp:', e);
         }

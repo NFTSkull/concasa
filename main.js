@@ -485,9 +485,94 @@ const initModal = () => {
 };
 
 
+/**
+ * Handler específico para el formulario de página (#page-form)
+ * Guarda datos en BD y redirige a gracias.html
+ */
+const handlePageFormSubmit = async (event) => {
+  event.preventDefault();
+  const formElement = event.target;
+  clearErrors(formElement);
+  const formData = new FormData(formElement);
+  
+  // Validar formulario
+  const validation = validateForm(formData, formElement);
+  if (!validation.isValid) return;
+
+  // Leer campos del formulario
+  const fullName = formData.get("fullName")?.toString().trim() || "";
+  const nss = formData.get("nss")?.toString().trim() || "";
+  const birthDate = formData.get("birthDate")?.toString().trim() || "";
+  let whatsapp = formData.get("whatsapp")?.toString().trim() || "";
+  
+  // Normalizar WhatsApp a solo dígitos
+  whatsapp = whatsapp.replace(/\D/g, '');
+
+  // Extraer UTM parameters de la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const utmSource = urlParams.get('utm_source') || null;
+  const utmMedium = urlParams.get('utm_medium') || null;
+  const utmCampaign = urlParams.get('utm_campaign') || null;
+  const utmContent = urlParams.get('utm_content') || null;
+  const utmTerm = urlParams.get('utm_term') || null;
+
+  // Construir payload con nombres exactos que espera la BD
+  const payload = {
+    lead_full_name: fullName || null,
+    lead_imss: nss || null,
+    lead_birth_date: birthDate || null,
+    lead_whatsapp: whatsapp || null,
+    channel: "web",
+    event_name: "form_submit",
+    landing_path: window.location.pathname + window.location.search,
+    utm_source: utmSource,
+    utm_medium: utmMedium,
+    utm_campaign: utmCampaign,
+    utm_content: utmContent,
+    utm_term: utmTerm,
+  };
+
+  try {
+    // Hacer fetch POST a /api/assign-vendor
+    const response = await fetch("/api/assign-vendor", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      // Mostrar error y NO redirigir
+      console.error("[Form Submit Error]", data.error);
+      alert(`Error al enviar el formulario: ${data.error || "Error desconocido"}`);
+      return;
+    }
+
+    // Si success=true
+    if (data.whatsapp_url) {
+      // Guardar whatsapp_url en sessionStorage
+      try {
+        sessionStorage.setItem("wa_redirect_url", data.whatsapp_url);
+      } catch (e) {
+        console.warn("[handlePageFormSubmit] No se pudo guardar en sessionStorage", e);
+      }
+    }
+
+    // Redirigir a /gracias.html
+    window.location.href = "/gracias.html";
+
+  } catch (error) {
+    console.error("[handlePageFormSubmit] Error en fetch", error);
+    alert("Error al enviar el formulario. Por favor intenta de nuevo.");
+  }
+};
+
 const initForm = () => {
   form?.addEventListener("submit", handleSubmit);
-  pageForm?.addEventListener("submit", handleSubmit);
+  pageForm?.addEventListener("submit", handlePageFormSubmit);
 };
 
 const initAnimations = () => {

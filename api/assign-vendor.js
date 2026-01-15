@@ -169,13 +169,31 @@ module.exports = async function handler(req, res) {
       utm_content = null,
       utm_term = null,
       landing_path = null,
-      // Datos del formulario (opcionales)
-      lead_full_name = null,
-      lead_imss = null,
-      lead_birth_date = null,
-      lead_whatsapp = null,
       origen_cta = null,
     } = body;
+
+    // Aceptar tanto snake_case como camelCase por seguridad
+    const lead_full_name = body.lead_full_name ?? body.fullName ?? null;
+    const lead_imss = body.lead_imss ?? body.nss ?? null;
+    const lead_birth_date = body.lead_birth_date ?? body.birthDate ?? null;
+    const lead_whatsapp = body.lead_whatsapp ?? body.whatsapp ?? null;
+
+    // REGLA: si event_name === "form_submit" entonces los 4 campos son OBLIGATORIOS
+    if (event_name === "form_submit") {
+      if (!lead_full_name || !lead_imss || !lead_birth_date || !lead_whatsapp) {
+        const missingFields = [];
+        if (!lead_full_name) missingFields.push('lead_full_name');
+        if (!lead_imss) missingFields.push('lead_imss');
+        if (!lead_birth_date) missingFields.push('lead_birth_date');
+        if (!lead_whatsapp) missingFields.push('lead_whatsapp');
+        
+        console.error("[assign-vendor] Missing lead fields for form_submit:", missingFields);
+        return res.status(400).json({
+          success: false,
+          error: `Missing lead fields: ${missingFields.join(', ')}`
+        });
+      }
+    }
 
     // Helper para normalizar strings (trim y null si queda vacío)
     const normalizeString = (value) => {
@@ -206,6 +224,25 @@ module.exports = async function handler(req, res) {
       return null;
     };
 
+    // Normalizar datos
+    const normalizedLeadFullName = normalizeString(lead_full_name);
+    const normalizedLeadImss = normalizeString(lead_imss);
+    const normalizedLeadBirthDate = normalizeDate(lead_birth_date);
+    const normalizedLeadWhatsapp = normalizeString(lead_whatsapp);
+
+    // Log mínimo en desarrollo (solo keys, sin datos sensibles)
+    const isDevelopment = process.env.NODE_ENV !== 'production' || 
+                         process.env.VERCEL_ENV !== 'production';
+    if (isDevelopment) {
+      console.log("[assign-vendor] Body received - keys:", Object.keys(body));
+      console.log("[assign-vendor] Lead fields resolved:", {
+        has_full_name: !!normalizedLeadFullName,
+        has_imss: !!normalizedLeadImss,
+        has_birth_date: !!normalizedLeadBirthDate,
+        has_whatsapp: !!normalizedLeadWhatsapp,
+      });
+    }
+
     // Crear payload explícito para el insert
     const payload = {
       vendor_id: updatedVendor.id,
@@ -228,16 +265,12 @@ module.exports = async function handler(req, res) {
       ip_hash: ipHash,
       
       // Datos del formulario (normalizados)
-      lead_name: normalizeString(lead_full_name),
-      lead_nss: normalizeString(lead_imss),
-      lead_birth_date: normalizeDate(lead_birth_date),
-      lead_whatsapp: normalizeString(lead_whatsapp),
+      lead_name: normalizedLeadFullName,
+      lead_nss: normalizedLeadImss,
+      lead_birth_date: normalizedLeadBirthDate,
+      lead_whatsapp: normalizedLeadWhatsapp,
       origen_cta: origen_cta || null,
     };
-
-    // Logging para debugging
-    console.log("[req.body keys]", req.body ? Object.keys(req.body) : null);
-    console.log("[payload keys]", Object.keys(payload));
 
     const { data: insertedLead, error: insertHistoryError } = await supabase
       .from("lead_assignments")
@@ -256,6 +289,33 @@ module.exports = async function handler(req, res) {
       `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
     );
 
+    // Generar whatsapp_url con mensaje personalizado si hay datos del formulario
+    let whatsappUrl = null;
+    if (event_name === "form_submit" && normalizedLeadFullName && normalizedLeadWhatsapp) {
+      // Convertir fecha de YYYY-MM-DD a DD/MM/YYYY para el mensaje
+      const formatDateForMessage = (dateStr) => {
+        if (!dateStr) return "";
+        const [year, month, day] = dateStr.split("-");
+        return `${day}/${month}/${year}`;
+      };
+
+      const message = [
+        "Hola, quiero solicitar el préstamo de Subcuenta de Vivienda con 11% de interés.",
+        "",
+        "Soy trabajador activo que cotiza en Infonavit y me interesa el préstamo más amigable.",
+        "",
+        "Mis datos son:",
+        `Nombre completo: ${normalizedLeadFullName}`,
+        `Número de afiliación IMSS: ${normalizedLeadImss || 'N/A'}`,
+        `Fecha de nacimiento: ${formatDateForMessage(normalizedLeadBirthDate) || 'N/A'}`,
+        `WhatsApp: ${normalizedLeadWhatsapp}`,
+        "",
+        "Gracias.",
+      ].join("\n");
+
+      whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(message)}`;
+    }
+
     // Paso 6: Retornar respuesta exitosa
     return res.status(200).json({
       success: true,
@@ -265,7 +325,8 @@ module.exports = async function handler(req, res) {
         phone: updatedVendor.phone,
         lead_count: updatedVendor.lead_count
       },
-      lead_assignment_id: insertedLead?.id || null
+      lead_assignment_id: insertedLead?.id || null,
+      whatsapp_url: whatsappUrl
     });
 
   } catch (error) {
