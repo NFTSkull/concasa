@@ -5,7 +5,7 @@
  * y la generación de links de WhatsApp.
  */
 
-import { trackWhatsAppClick, trackGoogleAdsConversion, trackHeroCTAButtonClick } from "./lib/analytics.js";
+import { trackWhatsAppClick, trackGoogleAdsConversion, trackHeroCTAButtonClick, trackCloseConvertLead } from "./lib/analytics.js";
 import {
   DEFAULT_MESSAGE,
   DEFAULT_WHATSAPP_NUMBER,
@@ -610,35 +610,24 @@ const initVideoAutoplay = () => {
  * Inicializa el tracking específico para el botón hero CTA de WhatsApp
  */
 const initHeroCTATracking = () => {
-  const heroCTAButton = document.querySelector('.btn-hero-cta');
+  const heroCTAButton = document.querySelector('a.btn-hero-cta[data-whatsapp-link]');
   if (!heroCTAButton || !(heroCTAButton instanceof HTMLAnchorElement)) return;
 
-  // Validar que el botón tenga un href válido de WhatsApp
-  const href = heroCTAButton.getAttribute('href') || heroCTAButton.href || '';
-  if (!href.includes('wa.me') && !href.includes('api.whatsapp.com')) {
-    return;
-  }
-
-  // Flag para prevenir doble disparo
-  let isTrackingFired = false;
-
-  // Agregar listener con capture para ejecutarse antes del handler existente
+  // Agregar listener para disparar evento de conversión close_convert_lead
   heroCTAButton.addEventListener('click', () => {
-    // Prevenir doble disparo
-    if (isTrackingFired) return;
-    isTrackingFired = true;
-
-    // Obtener el href actual (puede cambiar dinámicamente)
-    const currentHref = heroCTAButton.getAttribute('href') || heroCTAButton.href || href;
-    
-    // Disparar tracking
-    trackHeroCTAButtonClick({ linkUrl: currentHref });
-
-    // Resetear el flag después de un delay para permitir nuevo tracking si el usuario vuelve
-    setTimeout(() => {
-      isTrackingFired = false;
-    }, 1000);
-  }, { capture: true });
+    try {
+      // Obtener el href actual (puede cambiar dinámicamente)
+      const currentHref = heroCTAButton.getAttribute('href') || heroCTAButton.href || '';
+      
+      // Disparar evento de conversión close_convert_lead
+      trackCloseConvertLead({ linkUrl: currentHref });
+    } catch (error) {
+      // No hacer nada si falla, no romper el flujo
+      if (window.location && window.location.hostname === 'localhost') {
+        console.warn('[analytics] Error al trackear close_convert_lead:', error);
+      }
+    }
+  });
 };
 
 // Inicializar funciones cuando el DOM esté listo
