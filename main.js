@@ -83,15 +83,30 @@ const prepareAdvancedMatchingData = (userData) => {
 
 /**
  * Obtiene un vendedor asignado usando round robin desde Supabase
+ * @param {Object} [formData] - Datos opcionales del formulario para guardar en BD
+ * @param {string} [formData.lead_name] - Nombre completo del lead
+ * @param {string} [formData.lead_whatsapp] - WhatsApp del lead
+ * @param {string} [formData.lead_nss] - Número de afiliación IMSS
+ * @param {string} [formData.lead_birth_date] - Fecha de nacimiento (YYYY-MM-DD)
+ * @param {string} [formData.origen_cta] - Origen del CTA (ej: 'formulario-pagina')
  * @returns {Promise<string>} Número de teléfono del vendedor (10 dígitos, sin +52)
  */
-const assignVendor = async () => {
+const assignVendor = async (formData = null) => {
   try {
+    const body = formData ? {
+      lead_name: formData.lead_name || null,
+      lead_whatsapp: formData.lead_whatsapp || null,
+      lead_nss: formData.lead_nss || null,
+      lead_birth_date: formData.lead_birth_date || null,
+      origen_cta: formData.origen_cta || null,
+    } : {};
+    
     const response = await fetch(API_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -280,8 +295,18 @@ const handleSubmit = async (event) => {
   const validation = validateForm(formData, formElement);
   if (!validation.isValid) return;
 
-  // Asignar vendedor usando round robin
-  const assignedPhone = await assignVendor();
+  // Preparar datos del formulario para guardar en BD
+  const originCTA = formData.get("origin");
+  const formDataForDB = {
+    lead_name: validation.fullName,
+    lead_whatsapp: validation.whatsapp,
+    lead_nss: validation.nss,
+    lead_birth_date: validation.birthDate,
+    origen_cta: typeof originCTA === 'string' ? originCTA : "hero",
+  };
+
+  // Asignar vendedor usando round robin y guardar datos del formulario
+  const assignedPhone = await assignVendor(formDataForDB);
 
   // Convertir fecha de YYYY-MM-DD a DD/MM/AAAA para el mensaje
   const formatDateForMessage = (dateStr) => {
@@ -340,8 +365,10 @@ const handleSubmit = async (event) => {
     currency: 'MXN',
   });
 
-  // Guardar datos en sessionStorage para la página de gracias (opcional)
+  // Generar URL de WhatsApp con el mensaje
   const whatsappUrl = withWhatsappUrl(message, assignedPhone);
+  
+  // Guardar datos en sessionStorage para la página de gracias (opcional)
   try {
     sessionStorage.setItem('whatsappUrl', whatsappUrl);
   } catch (e) {
@@ -349,8 +376,21 @@ const handleSubmit = async (event) => {
     console.warn('[handleSubmit] No se pudo guardar en sessionStorage', e);
   }
 
-  // Redirigir a página de agradecimiento
-  window.location.href = '/gracias.html';
+  // Mostrar mensaje de agradecimiento brevemente antes de redirigir
+  // Solo para el formulario de página (page-form), mostrar gracias.html con redirección automática
+  if (formElement === pageForm) {
+    // Guardar URL de WhatsApp en sessionStorage para que gracias.html la use
+    try {
+      sessionStorage.setItem('redirectToWhatsApp', whatsappUrl);
+    } catch (e) {
+      console.warn('[handleSubmit] No se pudo guardar redirectToWhatsApp', e);
+    }
+    // Redirigir a página de agradecimiento que luego redirigirá a WhatsApp
+    window.location.href = '/gracias.html';
+  } else {
+    // Para el modal, redirigir directamente a WhatsApp
+    window.location.href = whatsappUrl;
+  }
 
   formElement.reset();
   

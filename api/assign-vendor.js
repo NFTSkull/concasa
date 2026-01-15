@@ -169,6 +169,12 @@ module.exports = async function handler(req, res) {
       utm_content = null,
       utm_term = null,
       landing_path = null,
+      // Datos del formulario (opcionales)
+      lead_name = null,
+      lead_whatsapp = null,
+      lead_nss = null,
+      lead_birth_date = null,
+      origen_cta = null,
     } = body;
 
     // Crear payload explícito para el insert
@@ -191,6 +197,13 @@ module.exports = async function handler(req, res) {
       landing_path,
       user_agent: userAgent,
       ip_hash: ipHash,
+      
+      // Datos del formulario
+      lead_name: lead_name || null,
+      lead_whatsapp: lead_whatsapp || null,
+      lead_nss: lead_nss || null,
+      lead_birth_date: lead_birth_date || null,
+      origen_cta: origen_cta || null,
     };
 
     // Logging para debugging

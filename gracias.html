@@ -101,6 +101,26 @@
       <p class="copyright">© 2026 Mejora Monterrey. Todos los derechos reservados.</p>
     </footer>
 
+    <script type="module">
+      // Redirigir automáticamente a WhatsApp después de 2 segundos
+      const redirectToWhatsApp = () => {
+        try {
+          const whatsappUrl = sessionStorage.getItem('redirectToWhatsApp');
+          if (whatsappUrl) {
+            // Limpiar sessionStorage
+            sessionStorage.removeItem('redirectToWhatsApp');
+            sessionStorage.removeItem('whatsappUrl');
+            // Redirigir a WhatsApp
+            window.location.href = whatsappUrl;
+          }
+        } catch (e) {
+          console.warn('[gracias.html] Error al redirigir a WhatsApp:', e);
+        }
+      };
+      
+      // Esperar 2 segundos antes de redirigir
+      setTimeout(redirectToWhatsApp, 2000);
+    </script>
     <script type="module" src="main.js"></script>
   </body>
 </html>
