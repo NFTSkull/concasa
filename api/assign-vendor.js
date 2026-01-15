@@ -177,17 +177,17 @@ module.exports = async function handler(req, res) {
       origen_cta = null,
     } = body;
 
-    // Funciones helper para sanitización
-    const sanitizeDigits = (value) => {
-      if (!value) return null;
-      const digitsOnly = String(value).replace(/\D/g, '');
-      return digitsOnly || null;
-    };
-
-    const sanitizeName = (value) => {
+    // Helpers para sanitización
+    const cleanText = (value) => {
       if (!value) return null;
       const trimmed = String(value).trim();
       return trimmed || null;
+    };
+
+    const onlyDigits = (value) => {
+      if (!value) return null;
+      const digitsOnly = String(value).replace(/\D/g, '');
+      return digitsOnly || null;
     };
 
     const normalizeDate = (value) => {
@@ -211,12 +211,6 @@ module.exports = async function handler(req, res) {
       return null;
     };
 
-    // Sanitizar datos del formulario
-    const sanitizedLeadFullName = sanitizeName(lead_full_name);
-    const sanitizedLeadImss = sanitizeDigits(lead_imss);
-    const sanitizedLeadWhatsapp = sanitizeDigits(lead_whatsapp);
-    const sanitizedLeadBirthDate = normalizeDate(lead_birth_date);
-
     // Crear payload explícito para el insert
     const payload = {
       vendor_id: updatedVendor.id,
@@ -239,10 +233,10 @@ module.exports = async function handler(req, res) {
       ip_hash: ipHash,
       
       // Datos del formulario (sanitizados)
-      lead_name: sanitizedLeadFullName,
-      lead_nss: sanitizedLeadImss,
-      lead_birth_date: sanitizedLeadBirthDate,
-      lead_whatsapp: sanitizedLeadWhatsapp,
+      lead_name: cleanText(lead_full_name),
+      lead_nss: onlyDigits(lead_imss),
+      lead_birth_date: normalizeDate(lead_birth_date),
+      lead_whatsapp: onlyDigits(lead_whatsapp),
       origen_cta: origen_cta || null,
     };
 
