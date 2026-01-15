@@ -172,11 +172,11 @@ module.exports = async function handler(req, res) {
       origen_cta = null,
     } = body;
 
-    // Aceptar tanto snake_case como camelCase por seguridad
+    // Mapear campos del formulario por compatibilidad (snake_case y camelCase)
     const lead_full_name = body.lead_full_name ?? body.fullName ?? null;
     const lead_imss = body.lead_imss ?? body.nss ?? null;
     const lead_birth_date = body.lead_birth_date ?? body.birthDate ?? null;
-    const lead_whatsapp = body.lead_whatsapp ?? body.whatsapp ?? null;
+    let lead_whatsapp = body.lead_whatsapp ?? body.whatsapp ?? null;
 
     // REGLA: si event_name === "form_submit" entonces los 4 campos son OBLIGATORIOS
     if (event_name === "form_submit") {
@@ -200,6 +200,13 @@ module.exports = async function handler(req, res) {
       if (!value) return null;
       const trimmed = String(value).trim();
       return trimmed || null;
+    };
+
+    // Helper para limpiar WhatsApp a solo dígitos
+    const normalizeWhatsapp = (value) => {
+      if (!value) return null;
+      const digitsOnly = String(value).replace(/\D/g, '');
+      return digitsOnly || null;
     };
 
     // Helper para normalizar fecha a YYYY-MM-DD
@@ -228,7 +235,7 @@ module.exports = async function handler(req, res) {
     const normalizedLeadFullName = normalizeString(lead_full_name);
     const normalizedLeadImss = normalizeString(lead_imss);
     const normalizedLeadBirthDate = normalizeDate(lead_birth_date);
-    const normalizedLeadWhatsapp = normalizeString(lead_whatsapp);
+    const normalizedLeadWhatsapp = normalizeWhatsapp(lead_whatsapp);
 
     // Log mínimo en desarrollo (solo keys, sin datos sensibles)
     const isDevelopment = process.env.NODE_ENV !== 'production' || 
@@ -243,15 +250,23 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Crear payload explícito para el insert
-    const payload = {
+    // Construir insertPayload para lead_assignments (SIEMPRE insertar)
+    const insertPayload = {
       vendor_id: updatedVendor.id,
       vendor_name: updatedVendor.name,
       vendor_phone: updatedVendor.phone,
 
-      channel,
       event_name,
+      channel,
+      landing_path,
 
+      // Datos del formulario (pueden ser NULL)
+      lead_name: normalizedLeadFullName,
+      lead_nss: normalizedLeadImss,
+      lead_birth_date: normalizedLeadBirthDate,
+      lead_whatsapp: normalizedLeadWhatsapp,
+
+      // Metadatos opcionales
       fbclid,
       gclid,
       utm_source,
@@ -259,28 +274,24 @@ module.exports = async function handler(req, res) {
       utm_campaign,
       utm_content,
       utm_term,
-
-      landing_path,
       user_agent: userAgent,
       ip_hash: ipHash,
-      
-      // Datos del formulario (normalizados)
-      lead_name: normalizedLeadFullName,
-      lead_nss: normalizedLeadImss,
-      lead_birth_date: normalizedLeadBirthDate,
-      lead_whatsapp: normalizedLeadWhatsapp,
       origen_cta: origen_cta || null,
     };
 
-    const { data: insertedLead, error: insertHistoryError } = await supabase
-      .from("lead_assignments")
-      .insert(payload)
+    // Insertar SIEMPRE en lead_assignments
+    const { data, error } = await supabase
+      .from('lead_assignments')
+      .insert(insertPayload)
       .select('id')
       .single();
 
-    if (insertHistoryError) {
-      // NO rompas la asignación si falla el historial: solo loguea
-      console.error("[Error insertando lead_assignments]", insertHistoryError);
+    if (error) {
+      console.error('lead_assignments insert error', error);
+      return res.status(500).json({
+        success: false,
+        error: 'db_insert_failed'
+      });
     }
 
     // Paso 5: Log de la asignación (para debugging)
@@ -325,7 +336,7 @@ module.exports = async function handler(req, res) {
         phone: updatedVendor.phone,
         lead_count: updatedVendor.lead_count
       },
-      lead_assignment_id: insertedLead?.id || null,
+      lead_assignment_id: data.id,
       whatsapp_url: whatsappUrl
     });
 
