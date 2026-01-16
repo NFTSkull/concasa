@@ -286,12 +286,14 @@ module.exports = async function handler(req, res) {
       .select('id')
       .single();
 
+    // Si falla el insert, NO romper el flujo del usuario
+    // Retornar success:true pero lead_assignment_id:null y loguear el error
+    let leadAssignmentId = null;
     if (error) {
-      console.error('lead_assignments insert error', error);
-      return res.status(500).json({
-        success: false,
-        error: 'db_insert_failed'
-      });
+      console.error('[assign-vendor] lead_assignments insert error', error);
+      // Continuar con el flujo normal, pero sin lead_assignment_id
+    } else {
+      leadAssignmentId = data.id;
     }
 
     // Paso 5: Log de la asignación (para debugging)
@@ -336,7 +338,7 @@ module.exports = async function handler(req, res) {
         phone: updatedVendor.phone,
         lead_count: updatedVendor.lead_count
       },
-      lead_assignment_id: data.id,
+      lead_assignment_id: leadAssignmentId,
       whatsapp_url: whatsappUrl
     });
 

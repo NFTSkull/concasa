@@ -213,7 +213,17 @@ const updateWhatsappLinks = () => {
     // Nota: el número final se asigna por round robin al hacer click.
     link.href = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
 
-    // Agregar event listener para redirigir directo a WhatsApp
+    // El botón hero CTA tiene su propio tracking en initHeroCTATracking()
+    // NO hacer preventDefault para permitir navegación normal
+    const isHeroCTA = link.classList.contains('btn-hero-cta');
+    
+    if (isHeroCTA) {
+      // Para el botón hero, NO hacer preventDefault, dejar que navegue normalmente
+      // El tracking se hace en initHeroCTATracking() con sendBeacon
+      return;
+    }
+
+    // Para otros botones, mantener el comportamiento actual (preventDefault + flujo async)
     link.addEventListener("click", async (e) => {
       e.preventDefault();
       
@@ -751,23 +761,52 @@ const initVideoAutoplay = () => {
 
 /**
  * Inicializa el tracking específico para el botón hero CTA de WhatsApp
+ * Envía POST a /api/assign-vendor para insertar registro en lead_assignments
  */
 const initHeroCTATracking = () => {
   const heroCTAButton = document.querySelector('a.btn-hero-cta[data-whatsapp-link]');
   if (!heroCTAButton || !(heroCTAButton instanceof HTMLAnchorElement)) return;
 
-  // Agregar listener para disparar evento de conversión close_convert_lead
-  heroCTAButton.addEventListener('click', () => {
+  // Agregar listener para tracking (NO usa preventDefault, NO bloquea navegación)
+  heroCTAButton.addEventListener('click', (e) => {
     try {
       // Obtener el href actual (puede cambiar dinámicamente)
       const currentHref = heroCTAButton.getAttribute('href') || heroCTAButton.href || '';
       
-      // Disparar evento de conversión close_convert_lead
+      // Disparar evento de conversión close_convert_lead (GA4)
       trackCloseConvertLead({ linkUrl: currentHref });
+
+      // Preparar payload para /api/assign-vendor
+      const payload = {
+        event_name: 'cta_whatsapp_click',
+        channel: 'web',
+        landing_path: window.location.pathname + window.location.search,
+      };
+
+      const url = `${window.location.origin}/api/assign-vendor`;
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+
+      // Usar sendBeacon si está disponible (no bloquea navegación)
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, blob);
+      } else {
+        // Fallback: fetch con keepalive:true (no bloquea navegación)
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch((err) => {
+          // Solo log en desarrollo, no romper flujo
+          if (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel.app')) {
+            console.warn('[CTA tracking] Error al enviar tracking:', err);
+          }
+        });
+      }
     } catch (error) {
       // No hacer nada si falla, no romper el flujo
-      if (window.location && window.location.hostname === 'localhost') {
-        console.warn('[analytics] Error al trackear close_convert_lead:', error);
+      if (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel.app')) {
+        console.warn('[CTA tracking] Error:', error);
       }
     }
   });
