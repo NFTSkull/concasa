@@ -160,7 +160,7 @@ module.exports = async function handler(req, res) {
     const body = req.body || {};
     const {
       channel = "web",
-      event_name = "lead",
+      event_name = "cta_whatsapp_click",
       fbclid = null,
       gclid = null,
       utm_source = null,
@@ -250,50 +250,62 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Construir insertPayload para lead_assignments (SIEMPRE insertar)
-    const insertPayload = {
-      vendor_id: updatedVendor.id,
-      vendor_name: updatedVendor.name,
-      vendor_phone: updatedVendor.phone,
+    // Detectar si es CTA click o form submit para construir insertPayload
+    const isCTAClick = event_name === 'cta_whatsapp_click' || !event_name || event_name === 'lead';
 
-      event_name,
-      channel,
-      landing_path,
+    let insertPayload;
+    if (isCTAClick) {
+      // Para CTA clicks: SOLO campos mínimos
+      insertPayload = {
+        vendor_id: updatedVendor.id,
+        vendor_name: updatedVendor.name,
+        vendor_phone: updatedVendor.phone,
+        channel,
+        event_name: event_name || 'cta_whatsapp_click',
+        landing_path
+      };
+    } else {
+      // Para form_submit: incluir todos los campos
+      insertPayload = {
+        vendor_id: updatedVendor.id,
+        vendor_name: updatedVendor.name,
+        vendor_phone: updatedVendor.phone,
 
-      // Datos del formulario (pueden ser NULL)
-      lead_name: normalizedLeadFullName,
-      lead_nss: normalizedLeadImss,
-      lead_birth_date: normalizedLeadBirthDate,
-      lead_whatsapp: normalizedLeadWhatsapp,
+        event_name,
+        channel,
+        landing_path,
 
-      // Metadatos opcionales
-      fbclid,
-      gclid,
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_content,
-      utm_term,
-      user_agent: userAgent,
-      ip_hash: ipHash,
-      origen_cta: origen_cta || null,
-    };
+        // Datos del formulario (pueden ser NULL)
+        lead_name: normalizedLeadFullName,
+        lead_nss: normalizedLeadImss,
+        lead_birth_date: normalizedLeadBirthDate,
+        lead_whatsapp: normalizedLeadWhatsapp,
 
-    // Insertar SIEMPRE en lead_assignments
-    const { data, error } = await supabase
+        // Metadatos opcionales
+        fbclid,
+        gclid,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_content,
+        utm_term,
+        user_agent: userAgent,
+        ip_hash: ipHash,
+        origen_cta: origen_cta || null,
+      };
+    }
+
+    // Insertar SIEMPRE en lead_assignments (sin .single() para evitar errores raros)
+    const { data: insertedRows, error: insertErr } = await supabase
       .from('lead_assignments')
       .insert(insertPayload)
-      .select('id')
-      .single();
+      .select('id');
 
-    // Si falla el insert, NO romper el flujo del usuario
-    // Retornar success:true pero lead_assignment_id:null y loguear el error
     let leadAssignmentId = null;
-    if (error) {
-      console.error('[assign-vendor] lead_assignments insert error', error);
-      // Continuar con el flujo normal, pero sin lead_assignment_id
-    } else {
-      leadAssignmentId = data.id;
+    if (insertErr) {
+      console.error('[assign-vendor] lead_assignments insert error', insertErr);
+    } else if (insertedRows && insertedRows[0]?.id) {
+      leadAssignmentId = insertedRows[0].id;
     }
 
     // Paso 5: Log de la asignación (para debugging)
