@@ -100,20 +100,6 @@ module.exports = async function handler(req, res) {
     const nextIndex = (lastIndex + 1) % totalVendors;
     const assignedVendor = vendors[nextIndex];
 
-    // Validar que assignedVendor existe
-    if (!assignedVendor) {
-      console.error('[Error] assignedVendor es null/undefined', {
-        nextIndex,
-        totalVendors,
-        vendorsLength: vendors.length,
-        vendors: vendors.map(v => ({ id: v.id, name: v.name }))
-      });
-      return res.status(500).json({
-        success: false,
-        error: 'Error: No se pudo asignar vendedor (assignedVendor es null)'
-      });
-    }
-
     // Paso 4: Actualizar el estado del queue y el contador del vendedor
     // Usamos una transacción implícita con múltiples updates
 
@@ -142,7 +128,7 @@ module.exports = async function handler(req, res) {
         lead_count: assignedVendor.lead_count + 1
       })
       .eq('id', assignedVendor.id)
-      .select('id, name, phone, lead_count')
+      .select()
       .single();
 
     if (updateVendorError) {
@@ -150,15 +136,6 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({
         success: false,
         error: 'Error al actualizar contador de leads'
-      });
-    }
-
-    // Validar que updatedVendor tiene todos los campos necesarios
-    if (!updatedVendor || !updatedVendor.id) {
-      console.error('[Error] updatedVendor inválido después del update:', updatedVendor);
-      return res.status(500).json({
-        success: false,
-        error: 'Error: vendedor actualizado no tiene ID válido'
       });
     }
 
@@ -273,83 +250,15 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Helper para normalizar número de teléfono a 10 dígitos (remover +52, espacios, etc.)
-    const normalizePhone = (phoneValue) => {
-      if (!phoneValue) return null;
-      // Convertir a string y remover todo lo que no sea dígito
-      const digitsOnly = String(phoneValue).replace(/\D/g, '');
-      // Si tiene 12 dígitos y empieza con 52, remover el 52
-      if (digitsOnly.length === 12 && digitsOnly.startsWith('52')) {
-        return digitsOnly.substring(2);
-      }
-      // Si tiene 10 dígitos, retornar tal cual
-      if (digitsOnly.length === 10) {
-        return digitsOnly;
-      }
-      // Si tiene otro formato, intentar extraer últimos 10 dígitos
-      if (digitsOnly.length > 10) {
-        return digitsOnly.substring(digitsOnly.length - 10);
-      }
-      // Si tiene menos de 10 dígitos, retornar null
-      return null;
-    };
-
-    // Asegurar que tenemos vendor_id válido (usar updatedVendor, fallback a assignedVendor)
-    const vendorId = updatedVendor?.id || assignedVendor?.id;
-    const vendorName = updatedVendor?.name || assignedVendor?.name;
-    const rawVendorPhone = updatedVendor?.phone || assignedVendor?.phone;
-    const vendorPhone = normalizePhone(rawVendorPhone);
-
-    // Validación CRÍTICA: vendor_id es OBLIGATORIO
-    if (!vendorId) {
-      console.error('[assign-vendor] ERROR CRÍTICO: No se pudo obtener vendor_id válido', {
-        updatedVendor,
-        assignedVendor
-      });
-      // Retornar success:true para no romper navegación, pero loguear error
-      return res.status(200).json({
-        success: true,
-        vendor: {
-          id: null,
-          name: vendorName || 'N/A',
-          phone: vendorPhone || 'N/A',
-          lead_count: updatedVendor?.lead_count || assignedVendor?.lead_count || 0
-        },
-        lead_assignment_id: null,
-        whatsapp_url: null
-      });
-    }
-
-    // Validación: vendorPhone debe estar presente y normalizado
-    if (!vendorPhone) {
-      console.error('[assign-vendor] ERROR: vendorPhone es null después de normalización', {
-        rawVendorPhone,
-        updatedVendor: { id: updatedVendor?.id, phone: updatedVendor?.phone },
-        assignedVendor: { id: assignedVendor?.id, phone: assignedVendor?.phone }
-      });
-      // Retornar success:true para no romper navegación
-      return res.status(200).json({
-        success: true,
-        vendor: {
-          id: vendorId,
-          name: vendorName || 'N/A',
-          phone: '8181781697', // Fallback a número por defecto
-          lead_count: updatedVendor?.lead_count || assignedVendor?.lead_count || 0
-        },
-        lead_assignment_id: null,
-        whatsapp_url: null
-      });
-    }
-
     // Construir insertPayload para lead_assignments (SIEMPRE insertar)
     const insertPayload = {
-      vendor_id: vendorId, // OBLIGATORIO - siempre presente aquí
-      vendor_name: vendorName,
-      vendor_phone: vendorPhone,
+      vendor_id: updatedVendor.id,
+      vendor_name: updatedVendor.name,
+      vendor_phone: updatedVendor.phone,
 
-      event_name: event_name || 'cta_whatsapp_click',
-      channel: channel || 'web',
-      landing_path: landing_path || null,
+      event_name,
+      channel,
+      landing_path,
 
       // Datos del formulario (pueden ser NULL)
       lead_name: normalizedLeadFullName,
@@ -358,74 +267,39 @@ module.exports = async function handler(req, res) {
       lead_whatsapp: normalizedLeadWhatsapp,
 
       // Metadatos opcionales
-      fbclid: fbclid || null,
-      gclid: gclid || null,
-      utm_source: utm_source || null,
-      utm_medium: utm_medium || null,
-      utm_campaign: utm_campaign || null,
-      utm_content: utm_content || null,
-      utm_term: utm_term || null,
-      user_agent: userAgent || null,
-      ip_hash: ipHash || null,
+      fbclid,
+      gclid,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_content,
+      utm_term,
+      user_agent: userAgent,
+      ip_hash: ipHash,
       origen_cta: origen_cta || null,
     };
 
-    // Validar que vendor_id está presente antes de insertar
-    if (!insertPayload.vendor_id) {
-      console.error('[assign-vendor] ERROR: insertPayload.vendor_id es null/undefined antes de insertar', insertPayload);
-      // Retornar success:true para no romper navegación
-      return res.status(200).json({
-        success: true,
-        vendor: {
-          id: vendorId,
-          name: vendorName,
-          phone: vendorPhone,
-          lead_count: updatedVendor?.lead_count || assignedVendor?.lead_count || 0
-        },
-        lead_assignment_id: null,
-        whatsapp_url: null
-      });
-    }
-
     // Insertar SIEMPRE en lead_assignments
-    let leadAssignmentId = null;
-    try {
-      const { data, error } = await supabase
-        .from('lead_assignments')
-        .insert(insertPayload)
-        .select('id')
-        .single();
+    const { data, error } = await supabase
+      .from('lead_assignments')
+      .insert(insertPayload)
+      .select('id')
+      .single();
 
-      if (error) {
-        console.error('[assign-vendor] lead_assignments insert error', {
-          error,
-          vendor_id: insertPayload.vendor_id,
-          event_name: insertPayload.event_name,
-          payload_keys: Object.keys(insertPayload)
-        });
-        // Continuar con el flujo normal, pero sin lead_assignment_id
-      } else if (data && data.id) {
-        leadAssignmentId = data.id;
-      } else {
-        console.error('[assign-vendor] Insert exitoso pero data.id no está presente', { data });
-      }
-    } catch (insertException) {
-      console.error('[assign-vendor] Excepción al insertar en lead_assignments', {
-        exception: insertException,
-        vendor_id: insertPayload.vendor_id
-      });
-      // Continuar con el flujo normal
+    // Si falla el insert, NO romper el flujo del usuario
+    // Retornar success:true pero lead_assignment_id:null y loguear el error
+    let leadAssignmentId = null;
+    if (error) {
+      console.error('[assign-vendor] lead_assignments insert error', error);
+      // Continuar con el flujo normal, pero sin lead_assignment_id
+    } else {
+      leadAssignmentId = data.id;
     }
 
     // Paso 5: Log de la asignación (para debugging)
     console.log(
-      `[Round Robin] Lead asignado: ` +
-      `ID=${vendorId}, ` +
-      `Name=${vendorName}, ` +
-      `Phone=${vendorPhone} (raw: ${rawVendorPhone}), ` +
-      `Index=${nextIndex}/${totalVendors}, ` +
-      `LastIndex=${lastIndex}, ` +
-      `TotalLeads=${updatedVendor?.lead_count || assignedVendor?.lead_count || 0}`
+      `[Round Robin] Lead asignado a: ${assignedVendor.name} ` +
+      `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
     );
 
     // Generar whatsapp_url con mensaje personalizado si hay datos del formulario
@@ -452,19 +326,17 @@ module.exports = async function handler(req, res) {
         "Gracias.",
       ].join("\n");
 
-      whatsappUrl = `https://wa.me/52${vendorPhone}?text=${encodeURIComponent(message)}`;
+      whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(message)}`;
     }
 
     // Paso 6: Retornar respuesta exitosa
-    // Usar updatedVendor o assignedVendor como fallback
-    const finalVendor = updatedVendor || assignedVendor;
     return res.status(200).json({
       success: true,
       vendor: {
-        id: vendorId,
-        name: vendorName,
-        phone: vendorPhone,
-        lead_count: finalVendor?.lead_count || 0
+        id: updatedVendor.id,
+        name: updatedVendor.name,
+        phone: updatedVendor.phone,
+        lead_count: updatedVendor.lead_count
       },
       lead_assignment_id: leadAssignmentId,
       whatsapp_url: whatsappUrl
