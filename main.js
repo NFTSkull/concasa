@@ -83,25 +83,35 @@ const prepareAdvancedMatchingData = (userData) => {
 
 /**
  * Obtiene un vendedor asignado usando round robin desde Supabase
- * @param {Object} [formData] - Datos opcionales del formulario para guardar en BD
+ * @param {Object} [formData] - Datos opcionales del formulario o CTA para guardar en BD
  * @param {string} [formData.lead_full_name] - Nombre completo del lead
  * @param {string} [formData.lead_whatsapp] - WhatsApp del lead
  * @param {string} [formData.lead_imss] - Número de afiliación IMSS
  * @param {string} [formData.lead_birth_date] - Fecha de nacimiento (YYYY-MM-DD o DD/MM/YYYY)
- * @param {string} [formData.origen_cta] - Origen del CTA (ej: 'formulario-pagina')
+ * @param {string} [formData.event_name] - Tipo de evento ('form_submit' o 'cta_whatsapp_click')
+ * @param {string} [formData.channel] - Canal ('web')
+ * @param {string} [formData.landing_path] - Path de la landing page
  * @returns {Promise<string>} Número de teléfono del vendedor (10 dígitos, sin +52)
  */
 const assignVendor = async (formData = null) => {
   try {
-    const body = formData ? {
+    // Si formData tiene lead_* es un formulario
+    const isFormSubmit = formData && (formData.lead_full_name || formData.lead_imss || formData.lead_birth_date || formData.lead_whatsapp);
+    
+    // Construir body: si es formulario usa form_submit, si formData viene con event_name lo usa, si no usa cta_whatsapp_click
+    const body = isFormSubmit ? {
       lead_full_name: formData.lead_full_name || null,
       lead_imss: formData.lead_imss || null,
       lead_birth_date: formData.lead_birth_date || null,
       lead_whatsapp: formData.lead_whatsapp || null,
-      channel: "web",
+      channel: formData.channel || "web",
       event_name: "form_submit",
-      landing_path: typeof window !== 'undefined' ? window.location.pathname : null,
-    } : {};
+      landing_path: formData.landing_path || (typeof window !== 'undefined' ? window.location.pathname + window.location.search : null),
+    } : (formData || {
+      event_name: "cta_whatsapp_click",
+      channel: "web",
+      landing_path: typeof window !== 'undefined' ? window.location.pathname + window.location.search : null,
+    });
     
     const response = await fetch(API_ENDPOINT, {
       method: "POST",
@@ -153,7 +163,13 @@ const proceedToWhatsAppDirect = async (origin) => {
   toggleWhatsappLoading(true);
 
   try {
-    const assignedPhone = await assignVendor();
+    // Enviar event_name='cta_whatsapp_click' para tracking
+    const ctaBody = {
+      event_name: "cta_whatsapp_click",
+      channel: "web",
+      landing_path: typeof window !== 'undefined' ? window.location.pathname + window.location.search : null,
+    };
+    const assignedPhone = await assignVendor(ctaBody);
     const message = DEFAULT_MESSAGE;
     const url = withWhatsappUrl(message, assignedPhone);
 
