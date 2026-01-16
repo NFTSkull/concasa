@@ -772,13 +772,13 @@ const initHeroCTATracking = () => {
     // PreventDefault temporalmente para obtener vendor asignado
     e.preventDefault();
     
-    // Mostrar mensaje de "Redirigiendo a WhatsApp..."
+    // Mostrar mensaje de "Redirigiendo a WhatsApp"
     toggleWhatsappLoading(true);
     
     try {
       // Preparar payload para /api/assign-vendor
       const payload = {
-        event_name: 'lead',
+        event_name: 'cta_whatsapp_click',
         channel: 'web',
         landing_path: window.location.pathname + window.location.search,
       };
@@ -806,7 +806,6 @@ const initHeroCTATracking = () => {
       } else {
         // Si falla, usar número por defecto
         console.error('[Hero CTA] Error obteniendo vendor, usando default:', data.error);
-        toggleWhatsappLoading(false);
         const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
         trackCloseConvertLead({ linkUrl: fallbackUrl });
         window.location.href = fallbackUrl;
@@ -814,7 +813,7 @@ const initHeroCTATracking = () => {
     } catch (error) {
       // Si hay error, usar número por defecto y navegar
       console.error('[Hero CTA] Error:', error);
-      toggleWhatsappLoading(false);
+      toggleWhatsappLoading(false); // Ocultar loading solo si hay error antes de navegar
       const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
       trackCloseConvertLead({ linkUrl: fallbackUrl });
       window.location.href = fallbackUrl;
