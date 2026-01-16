@@ -778,7 +778,7 @@ const initHeroCTATracking = () => {
     try {
       // Preparar payload para /api/assign-vendor
       const payload = {
-        event_name: 'cta_whatsapp_click',
+        event_name: 'lead',
         channel: 'web',
         landing_path: window.location.pathname + window.location.search,
       };
