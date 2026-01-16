@@ -772,6 +772,14 @@ const initHeroCTATracking = () => {
     // PreventDefault temporalmente para obtener vendor asignado
     e.preventDefault();
     
+    // Disparar evento del Pixel cuando el usuario inicia el flujo de WhatsApp desde el botón del hero
+    if (typeof fbq !== 'undefined') {
+      fbq('trackCustom', 'ClickWhatsApp', {
+        value: 163000,
+        currency: 'MXN'
+      });
+    }
+    
     // Mostrar mensaje de "Redirigiendo a WhatsApp"
     toggleWhatsappLoading(true);
     
