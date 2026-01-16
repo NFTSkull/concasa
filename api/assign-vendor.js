@@ -100,6 +100,20 @@ module.exports = async function handler(req, res) {
     const nextIndex = (lastIndex + 1) % totalVendors;
     const assignedVendor = vendors[nextIndex];
 
+    // Validar que assignedVendor existe
+    if (!assignedVendor) {
+      console.error('[Error] assignedVendor es null/undefined', {
+        nextIndex,
+        totalVendors,
+        vendorsLength: vendors.length,
+        vendors: vendors.map(v => ({ id: v.id, name: v.name }))
+      });
+      return res.status(500).json({
+        success: false,
+        error: 'Error: No se pudo asignar vendedor (assignedVendor es null)'
+      });
+    }
+
     // Paso 4: Actualizar el estado del queue y el contador del vendedor
     // Usamos una transacción implícita con múltiples updates
 
@@ -259,10 +273,32 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // Helper para normalizar número de teléfono a 10 dígitos (remover +52, espacios, etc.)
+    const normalizePhone = (phoneValue) => {
+      if (!phoneValue) return null;
+      // Convertir a string y remover todo lo que no sea dígito
+      const digitsOnly = String(phoneValue).replace(/\D/g, '');
+      // Si tiene 12 dígitos y empieza con 52, remover el 52
+      if (digitsOnly.length === 12 && digitsOnly.startsWith('52')) {
+        return digitsOnly.substring(2);
+      }
+      // Si tiene 10 dígitos, retornar tal cual
+      if (digitsOnly.length === 10) {
+        return digitsOnly;
+      }
+      // Si tiene otro formato, intentar extraer últimos 10 dígitos
+      if (digitsOnly.length > 10) {
+        return digitsOnly.substring(digitsOnly.length - 10);
+      }
+      // Si tiene menos de 10 dígitos, retornar null
+      return null;
+    };
+
     // Asegurar que tenemos vendor_id válido (usar updatedVendor, fallback a assignedVendor)
     const vendorId = updatedVendor?.id || assignedVendor?.id;
     const vendorName = updatedVendor?.name || assignedVendor?.name;
-    const vendorPhone = updatedVendor?.phone || assignedVendor?.phone;
+    const rawVendorPhone = updatedVendor?.phone || assignedVendor?.phone;
+    const vendorPhone = normalizePhone(rawVendorPhone);
 
     // Validación CRÍTICA: vendor_id es OBLIGATORIO
     if (!vendorId) {
@@ -277,6 +313,27 @@ module.exports = async function handler(req, res) {
           id: null,
           name: vendorName || 'N/A',
           phone: vendorPhone || 'N/A',
+          lead_count: updatedVendor?.lead_count || assignedVendor?.lead_count || 0
+        },
+        lead_assignment_id: null,
+        whatsapp_url: null
+      });
+    }
+
+    // Validación: vendorPhone debe estar presente y normalizado
+    if (!vendorPhone) {
+      console.error('[assign-vendor] ERROR: vendorPhone es null después de normalización', {
+        rawVendorPhone,
+        updatedVendor: { id: updatedVendor?.id, phone: updatedVendor?.phone },
+        assignedVendor: { id: assignedVendor?.id, phone: assignedVendor?.phone }
+      });
+      // Retornar success:true para no romper navegación
+      return res.status(200).json({
+        success: true,
+        vendor: {
+          id: vendorId,
+          name: vendorName || 'N/A',
+          phone: '8181781697', // Fallback a número por defecto
           lead_count: updatedVendor?.lead_count || assignedVendor?.lead_count || 0
         },
         lead_assignment_id: null,
@@ -362,8 +419,13 @@ module.exports = async function handler(req, res) {
 
     // Paso 5: Log de la asignación (para debugging)
     console.log(
-      `[Round Robin] Lead asignado a: ${assignedVendor.name} ` +
-      `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
+      `[Round Robin] Lead asignado: ` +
+      `ID=${vendorId}, ` +
+      `Name=${vendorName}, ` +
+      `Phone=${vendorPhone} (raw: ${rawVendorPhone}), ` +
+      `Index=${nextIndex}/${totalVendors}, ` +
+      `LastIndex=${lastIndex}, ` +
+      `TotalLeads=${updatedVendor?.lead_count || assignedVendor?.lead_count || 0}`
     );
 
     // Generar whatsapp_url con mensaje personalizado si hay datos del formulario
@@ -390,7 +452,7 @@ module.exports = async function handler(req, res) {
         "Gracias.",
       ].join("\n");
 
-      whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(message)}`;
+      whatsappUrl = `https://wa.me/52${vendorPhone}?text=${encodeURIComponent(message)}`;
     }
 
     // Paso 6: Retornar respuesta exitosa
