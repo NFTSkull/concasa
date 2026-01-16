@@ -772,14 +772,6 @@ const initHeroCTATracking = () => {
     // PreventDefault temporalmente para obtener vendor asignado
     e.preventDefault();
     
-    // Disparar evento del Pixel cuando el usuario inicia el flujo de WhatsApp desde el botón del hero
-    if (typeof fbq !== 'undefined') {
-      fbq('trackCustom', 'ClickWhatsApp', {
-        value: 163000,
-        currency: 'MXN'
-      });
-    }
-    
     // Mostrar mensaje de "Redirigiendo a WhatsApp"
     toggleWhatsappLoading(true);
     
@@ -809,14 +801,40 @@ const initHeroCTATracking = () => {
         // Disparar evento de conversión close_convert_lead (GA4)
         trackCloseConvertLead({ linkUrl: whatsappUrl });
         
-        // Navegar al WhatsApp del vendor asignado
-        window.location.href = whatsappUrl;
+        // Disparar evento de Meta Pixel antes de navegar
+        try {
+          if (typeof fbq !== 'undefined') {
+            fbq('trackCustom', 'ClickWhatsApp', {
+              placement: 'hero',
+              link_url: whatsappUrl
+            });
+          }
+        } catch (e) {}
+        
+        // Navegar al WhatsApp del vendor asignado (con delay para que no se pierda el evento)
+        setTimeout(() => {
+          window.location.href = whatsappUrl;
+        }, 200);
       } else {
         // Si falla, usar número por defecto
         console.error('[Hero CTA] Error obteniendo vendor, usando default:', data.error);
         const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
         trackCloseConvertLead({ linkUrl: fallbackUrl });
-        window.location.href = fallbackUrl;
+        
+        // Disparar evento de Meta Pixel antes de navegar (fallback)
+        try {
+          if (typeof fbq !== 'undefined') {
+            fbq('trackCustom', 'ClickWhatsApp', {
+              placement: 'hero',
+              link_url: fallbackUrl
+            });
+          }
+        } catch (e) {}
+        
+        // Navegar al WhatsApp fallback (con delay para que no se pierda el evento)
+        setTimeout(() => {
+          window.location.href = fallbackUrl;
+        }, 200);
       }
     } catch (error) {
       // Si hay error, usar número por defecto y navegar
@@ -824,7 +842,21 @@ const initHeroCTATracking = () => {
       toggleWhatsappLoading(false); // Ocultar loading solo si hay error antes de navegar
       const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
       trackCloseConvertLead({ linkUrl: fallbackUrl });
-      window.location.href = fallbackUrl;
+      
+      // Disparar evento de Meta Pixel antes de navegar (fallback)
+      try {
+        if (typeof fbq !== 'undefined') {
+          fbq('trackCustom', 'ClickWhatsApp', {
+            placement: 'hero',
+            link_url: fallbackUrl
+          });
+        }
+      } catch (e) {}
+      
+      // Navegar al WhatsApp fallback (con delay para que no se pierda el evento)
+      setTimeout(() => {
+        window.location.href = fallbackUrl;
+      }, 200);
     }
   });
 };
