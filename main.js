@@ -760,71 +760,65 @@ const initVideoAutoplay = () => {
 
 
 /**
- * Envía tracking del click del botón hero CTA a /api/assign-vendor
- * Usa sendBeacon (no bloquea navegación) o fetch con keepalive como fallback
- * El tracking se completa aunque el navegador navegue a WhatsApp
- * @param {string} landingPath - Path completo con query params
- */
-const trackWhatsAppCTAClick = (landingPath) => {
-  const payload = {
-    event_name: 'lead',
-    channel: 'web',
-    landing_path: landingPath,
-  };
-
-  const url = `${window.location.origin}/api/assign-vendor`;
-  const payloadStr = JSON.stringify(payload);
-
-  // Intentar usar sendBeacon primero (no bloquea navegación, se completa aunque navegue)
-  if (navigator.sendBeacon) {
-    const blob = new Blob([payloadStr], { type: 'application/json' });
-    const sent = navigator.sendBeacon(url, blob);
-    if (!sent) {
-      // Si sendBeacon falla, usar fetch con keepalive
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payloadStr,
-        keepalive: true,
-      }).catch(() => {
-        // Ignorar errores silenciosamente - no romper flujo
-      });
-    }
-  } else {
-    // Fallback: fetch con keepalive (no bloquea navegación)
-    fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: payloadStr,
-      keepalive: true,
-    }).catch(() => {
-      // Ignorar errores silenciosamente - no romper flujo
-    });
-  }
-};
-
-/**
  * Inicializa el tracking específico para el botón hero CTA de WhatsApp
- * NO bloquea la navegación - usa sendBeacon/keepalive para que el tracking se complete
- * aunque el navegador navegue a WhatsApp
+ * Obtiene vendor asignado por round robin y actualiza el href antes de navegar
  */
 const initHeroCTATracking = () => {
   const heroCTAButton = document.querySelector('a.btn-hero-cta[data-whatsapp-link]');
   if (!heroCTAButton || !(heroCTAButton instanceof HTMLAnchorElement)) return;
 
-  // Agregar listener para enviar tracking SIN bloquear navegación
-  heroCTAButton.addEventListener('click', () => {
-    const landingPath = window.location.pathname + window.location.search;
+  // Agregar listener para obtener vendor por round robin y luego navegar
+  heroCTAButton.addEventListener('click', async (e) => {
+    // PreventDefault temporalmente para obtener vendor asignado
+    e.preventDefault();
     
-    // Enviar tracking con sendBeacon/keepalive (se completa aunque navegue)
-    // El endpoint /api/assign-vendor recibirá el request y guardará en lead_assignments
-    trackWhatsAppCTAClick(landingPath);
+    // Mostrar mensaje de "Redirigiendo a WhatsApp..."
+    toggleWhatsappLoading(true);
     
-    // Disparar evento de conversión close_convert_lead (GA4) - se mantiene igual
-    const currentHref = heroCTAButton.getAttribute('href') || heroCTAButton.href || '';
-    trackCloseConvertLead({ linkUrl: currentHref });
-    
-    // NO usar preventDefault - el botón navega normalmente a su href
+    try {
+      // Preparar payload para /api/assign-vendor
+      const payload = {
+        event_name: 'lead',
+        channel: 'web',
+        landing_path: window.location.pathname + window.location.search,
+      };
+
+      // Llamar a /api/assign-vendor para obtener vendor asignado por round robin
+      const response = await fetch('/api/assign-vendor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.vendor && data.vendor.phone) {
+        // Actualizar href con el vendor asignado por round robin
+        const assignedPhone = data.vendor.phone;
+        const whatsappUrl = withWhatsappUrl(DEFAULT_MESSAGE, assignedPhone);
+        heroCTAButton.href = whatsappUrl;
+        
+        // Disparar evento de conversión close_convert_lead (GA4)
+        trackCloseConvertLead({ linkUrl: whatsappUrl });
+        
+        // Navegar al WhatsApp del vendor asignado
+        window.location.href = whatsappUrl;
+      } else {
+        // Si falla, usar número por defecto
+        console.error('[Hero CTA] Error obteniendo vendor, usando default:', data.error);
+        toggleWhatsappLoading(false);
+        const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
+        trackCloseConvertLead({ linkUrl: fallbackUrl });
+        window.location.href = fallbackUrl;
+      }
+    } catch (error) {
+      // Si hay error, usar número por defecto y navegar
+      console.error('[Hero CTA] Error:', error);
+      toggleWhatsappLoading(false);
+      const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
+      trackCloseConvertLead({ linkUrl: fallbackUrl });
+      window.location.href = fallbackUrl;
+    }
   });
 };
 
