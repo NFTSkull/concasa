@@ -15,7 +15,10 @@
 - Se rediseñó la UI para ofrecer una experiencia premium y persuasiva (hero con panel de métricas, strip de confianza, panel de contacto y layout modular sin emojis).
 - Se modernizó la capa visual (`styles.css`) con gradientes, cards y tipografía consistente; se actualizaron los CTAs y se agregaron nuevos puntos de contacto.
 
-## B3 - 2026-01-10
-- Se eliminó el mini formulario de ubicación (Monterrey/foráneo) en el CTA de “Calcular mi monto por WhatsApp”.
-- Ahora los botones de WhatsApp dirigen directamente al chat (manteniendo round robin, `action_log` y tracking).
+## B3 - 2025-01-XX
+- Se implementó tracking de conversiones de Google Ads en `lib/analytics.js`.
+- Se creó página de agradecimiento (`gracias.html`) a la que se redirige después de enviar el formulario exitosamente.
+- Se modificó el flujo del formulario para disparar evento de conversión de Google Ads antes de redirigir a la página de agradecimiento.
+- Se agregó Google Tag (gtag.js) a `contacto.html` para asegurar tracking en todas las páginas.
+- IMPORTANTE: Reemplazar `AW-CONVERSION_ID/CONVERSION_LABEL` en `lib/analytics.js` con los valores reales proporcionados por Google Ads.
 

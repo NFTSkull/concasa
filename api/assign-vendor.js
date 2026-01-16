@@ -48,21 +48,6 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Parsear JSON body de forma segura
-    let body = {};
-    try {
-      if (req.body && typeof req.body === 'object') {
-        body = req.body;
-      } else if (typeof req.body === 'string') {
-        body = JSON.parse(req.body);
-      }
-    } catch (parseError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid JSON body'
-      });
-    }
-
     // Obtener cliente de Supabase
     const supabase = getSupabaseClient();
 
@@ -171,10 +156,11 @@ module.exports = async function handler(req, res) {
       ? crypto.createHash("sha256").update(ipRaw).digest("hex")
       : null;
 
-    // Datos opcionales desde el frontend
+    // Datos opcionales desde el frontend (si los mandas en req.body)
+    const body = req.body || {};
     const {
       channel = "web",
-      event_name: incomingEventName,
+      event_name = "lead",
       fbclid = null,
       gclid = null,
       utm_source = null,
@@ -185,11 +171,6 @@ module.exports = async function handler(req, res) {
       landing_path = null,
       origen_cta = null,
     } = body;
-
-    // Forzar event_name = 'lead' para clicks del botón CTA (no formularios)
-    // Solo mantener 'form_submit' si viene explícitamente y tiene datos del lead
-    const hasLeadData = body.lead_full_name || body.fullName || body.lead_imss || body.nss;
-    const event_name = (incomingEventName === "form_submit" && hasLeadData) ? "form_submit" : "lead";
 
     // Mapear campos del formulario por compatibilidad (snake_case y camelCase)
     const lead_full_name = body.lead_full_name ?? body.fullName ?? null;
@@ -269,18 +250,9 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // VALIDAR: vendor_id debe existir antes de insertar (requisito de BD)
-    if (!updatedVendor || !updatedVendor.id) {
-      console.error('[assign-vendor] ERROR: No vendor assigned - updatedVendor is null or missing id');
-      return res.status(500).json({
-        success: false,
-        error: 'No vendor assigned'
-      });
-    }
-
-    // Construir insertPayload para lead_assignments (SIEMPRE insertar si hay vendor_id)
+    // Construir insertPayload para lead_assignments (SIEMPRE insertar)
     const insertPayload = {
-      vendor_id: updatedVendor.id, // NOT NULL - validado arriba
+      vendor_id: updatedVendor.id,
       vendor_name: updatedVendor.name,
       vendor_phone: updatedVendor.phone,
 
@@ -307,23 +279,22 @@ module.exports = async function handler(req, res) {
       origen_cta: origen_cta || null,
     };
 
-    // Insertar SIEMPRE en lead_assignments (vendor_id garantizado)
+    // Insertar SIEMPRE en lead_assignments
     const { data, error } = await supabase
       .from('lead_assignments')
       .insert(insertPayload)
       .select('id')
       .single();
 
-    // Si falla el insert, retornar error 500 (no continuar)
+    // Si falla el insert, NO romper el flujo del usuario
+    // Retornar success:true pero lead_assignment_id:null y loguear el error
+    let leadAssignmentId = null;
     if (error) {
       console.error('[assign-vendor] lead_assignments insert error', error);
-      return res.status(500).json({
-        success: false,
-        error: 'Database insert failed'
-      });
+      // Continuar con el flujo normal, pero sin lead_assignment_id
+    } else {
+      leadAssignmentId = data.id;
     }
-
-    const leadAssignmentId = data?.id || null;
 
     // Paso 5: Log de la asignación (para debugging)
     console.log(

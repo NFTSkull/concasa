@@ -18,7 +18,10 @@
 - **Copy:** Se reforzó el mensaje persuasivo resaltando beneficios tangibles, tiempos y condiciones sin usar emojis; todos los CTAs conducen a WhatsApp o al modal.
 - **Estilos:** `styles.css` ahora maneja gradientes, sombras suaves, badges y animaciones `fade-up` controladas con IntersectionObserver.
 
-## 2026-01-10 — B3
-- **Decisión UX:** Se eliminó la confirmación de ubicación (Monterrey/foráneo) para reducir fricción en el CTA “Calcular mi monto por WhatsApp”.
-- **Implementación:** Los CTAs con `data-whatsapp-link` ahora asignan vendedor por round robin y redirigen directo a WhatsApp con mensaje base (sin pasos intermedios), registrando en `action_log`.
+## 2025-01-XX — B3
+- **Analytics:** Se implementó tracking de conversiones de Google Ads mediante función `trackGoogleAdsConversion` en `lib/analytics.js`. La función dispara evento `conversion` usando `gtag('event', 'conversion', { send_to: 'AW-CONVERSION_ID/CONVERSION_LABEL' })`.
+- **Flujo de formulario:** Se modificó `handleSubmit` en `main.js` para disparar conversión de Google Ads antes de redirigir. El flujo ahora redirige a `/gracias.html` después del submit exitoso en lugar de redirigir directamente a WhatsApp.
+- **Página de agradecimiento:** Se creó `gracias.html` con diseño consistente que confirma al usuario que su solicitud fue recibida. Incluye Google Tag para tracking continuo.
+- **Tracking universal:** Se agregó Google Tag (gtag.js) a `contacto.html` para asegurar que GA4 esté disponible en todas las páginas del sitio.
+- **Nota importante:** Se debe reemplazar `AW-CONVERSION_ID/CONVERSION_LABEL` en `lib/analytics.js` con los valores reales proporcionados por Google Ads al configurar la acción de conversión.
 
