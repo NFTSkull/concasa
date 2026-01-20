@@ -83,7 +83,7 @@
         <a href="#faq">FAQ</a>
         <button type="button" class="link-btn" data-open-modal="header">Solicitar préstamo</button>
       </nav>
-      <a class="btn btn-outline" data-whatsapp-link target="_blank" rel="noreferrer">
+      <a class="btn btn-outline" data-whatsapp-link data-origin="header-desktop" target="_blank" rel="noreferrer">
         Hablar por WhatsApp
       </a>
       <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Abrir menú" aria-expanded="false">
@@ -97,7 +97,7 @@
         <a href="#proceso">Cómo Funciona</a>
         <a href="#faq">FAQ</a>
         <button type="button" class="link-btn" data-open-modal="header">Solicitar préstamo</button>
-        <a class="btn btn-primary" data-whatsapp-link target="_blank" rel="noreferrer">
+        <a class="btn btn-primary" data-whatsapp-link data-origin="header-mobile" target="_blank" rel="noreferrer">
           Hablar por WhatsApp
         </a>
       </nav>
@@ -121,7 +121,7 @@
               </p>
             </div>
             <div class="hero-ctas">
-              <a class="btn btn-primary btn-hero-cta" data-whatsapp-link target="_blank" rel="noreferrer">
+              <a class="btn btn-primary btn-hero-cta" data-whatsapp-link data-origin="hero" target="_blank" rel="noreferrer">
                 Calcular mi monto por WhatsApp
               </a>
               <p class="hero-security-note">
@@ -414,7 +414,7 @@
 
         <div class="mejora-cta">
           <p class="mejora-cta-text">Descubre cómo puedes mejorar tu hogar con el crédito Mejoravit</p>
-          <a class="btn btn-primary btn-large" data-whatsapp-link target="_blank" rel="noreferrer">
+          <a class="btn btn-primary btn-large" data-whatsapp-link data-origin="section-mejora" target="_blank" rel="noreferrer">
             Consultar mi crédito disponible
           </a>
         </div>
@@ -454,7 +454,7 @@
           </div>
         </div>
         <div class="cta-center">
-          <a class="btn btn-primary btn-large" data-whatsapp-link target="_blank" rel="noreferrer">
+          <a class="btn btn-primary btn-large" data-whatsapp-link data-origin="section-proceso" target="_blank" rel="noreferrer">
             Solicitar préstamo ahora
           </a>
         </div>
@@ -543,7 +543,7 @@
           <div class="mejoravit-cta">
             <p class="cta-text">Contáctanos y descubre cuánto puedes obtener con Mejoravit</p>
             <p class="cta-subtitle">Es tu oportunidad de mejorar y fortalecer tu hogar</p>
-            <a class="btn btn-primary btn-large" data-whatsapp-link target="_blank" rel="noreferrer">
+            <a class="btn btn-primary btn-large" data-whatsapp-link data-origin="banner-mejoravit" target="_blank" rel="noreferrer">
               Hablar con asesor ahora
             </a>
           </div>
@@ -640,13 +640,6 @@
             </div>
             <div class="form-row">
               <label>
-                <span>Número de afiliación IMSS</span>
-                <input type="text" name="nss" required inputmode="numeric" placeholder="Ej: 12345678901" />
-                <span class="error" data-error-for="nss"></span>
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
                 <span>Fecha de nacimiento</span>
                 <input type="date" name="birthDate" required />
                 <span class="error" data-error-for="birthDate"></span>
@@ -737,7 +730,7 @@
           </div>
         </div>
         <div class="cta-center">
-          <a class="btn btn-primary btn-large" data-whatsapp-link target="_blank" rel="noreferrer">
+          <a class="btn btn-primary btn-large" data-whatsapp-link data-origin="faq" target="_blank" rel="noreferrer">
             Contactar por WhatsApp
           </a>
         </div>
@@ -1020,12 +1013,42 @@
     </div>
 
     <!-- Botón flotante de WhatsApp -->
-    <a class="floating-wa" data-whatsapp-link="" target="_blank" rel="noreferrer" aria-label="Obtener mi crédito por WhatsApp">
+    <a class="floating-wa" data-whatsapp-link data-origin="floating-wa" target="_blank" rel="noreferrer" aria-label="Obtener mi crédito por WhatsApp">
       <svg class="wa-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" fill="currentColor"></path>
       </svg>
       <span class="wa-text">Obtener mi crédito</span>
     </a>
+
+    <!-- Modal obligatorio para captura de datos antes de WhatsApp -->
+    <div class="modal-backdrop hidden" id="whatsapp-modal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="whatsapp-modal-title">
+        <div class="modal-header">
+          <h3 id="whatsapp-modal-title">Déjanos tus datos para contactarte</h3>
+          <button type="button" class="close-btn" data-close-whatsapp-modal aria-label="Cerrar formulario">×</button>
+        </div>
+        <p class="modal-subtitle">
+          Ingresa tu nombre y WhatsApp para que un asesor te atienda de inmediato.
+        </p>
+        <form class="modal-form" id="whatsapp-modal-form">
+          <input type="hidden" name="origin" id="whatsapp-modal-origin" value="" />
+          <label>
+            Nombre completo
+            <input type="text" name="fullName" id="whatsapp-modal-name" required minlength="2" autocomplete="name" />
+            <span class="error" data-error-for="wa-fullName"></span>
+          </label>
+          <label>
+            WhatsApp (10 dígitos)
+            <input type="tel" name="whatsapp" id="whatsapp-modal-phone" required inputmode="numeric" autocomplete="tel" placeholder="Ej: 8112345678" />
+            <span class="error" data-error-for="wa-whatsapp"></span>
+          </label>
+          <button type="submit" class="btn btn-primary">Hablar por WhatsApp</button>
+          <p class="privacy-note">
+            Tus datos se usan solo para contactarte vía WhatsApp. No compartimos tu información.
+          </p>
+        </form>
+      </div>
+    </div>
 
     <script type="module" src="main.js"></script>
   </body>

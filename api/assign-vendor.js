@@ -178,18 +178,37 @@ module.exports = async function handler(req, res) {
     const lead_birth_date = body.lead_birth_date ?? body.birthDate ?? null;
     let lead_whatsapp = body.lead_whatsapp ?? body.whatsapp ?? null;
 
-    // REGLA: si event_name === "form_submit" entonces los 4 campos son OBLIGATORIOS
+    // REGLA: si event_name === "form_submit" entonces 3 campos son OBLIGATORIOS (nombre, fecha, whatsapp)
     if (event_name === "form_submit") {
-      if (!lead_full_name || !lead_imss || !lead_birth_date || !lead_whatsapp) {
+      if (!lead_full_name || !lead_birth_date || !lead_whatsapp) {
         const missingFields = [];
         if (!lead_full_name) missingFields.push('lead_full_name');
-        if (!lead_imss) missingFields.push('lead_imss');
         if (!lead_birth_date) missingFields.push('lead_birth_date');
         if (!lead_whatsapp) missingFields.push('lead_whatsapp');
         
         console.error("[assign-vendor] Missing lead fields for form_submit:", missingFields);
         return res.status(400).json({
           success: false,
+          error: `Missing lead fields: ${missingFields.join(', ')}`
+        });
+      }
+    }
+
+    // REGLA: si event_name === "whatsapp_modal" entonces nombre y whatsapp son OBLIGATORIOS
+    // Mapear lead_name y lead_phone para este flujo
+    const lead_name_modal = body.lead_name ?? null;
+    const lead_phone_modal = body.lead_phone ?? null;
+    
+    if (event_name === "whatsapp_modal") {
+      if (!lead_name_modal || !lead_phone_modal) {
+        const missingFields = [];
+        if (!lead_name_modal) missingFields.push('lead_name');
+        if (!lead_phone_modal) missingFields.push('lead_phone');
+        
+        console.error("[assign-vendor] Missing lead fields for whatsapp_modal:", missingFields);
+        return res.status(400).json({
+          success: false,
+          inserted: false,
           error: `Missing lead fields: ${missingFields.join(', ')}`
         });
       }
@@ -250,8 +269,9 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Detectar si es CTA click o form submit para construir insertPayload
+    // Detectar tipo de evento para construir insertPayload
     const isCTAClick = event_name === 'cta_whatsapp_click' || !event_name || event_name === 'lead';
+    const isWhatsappModal = event_name === 'whatsapp_modal';
 
     let insertPayload;
     if (isCTAClick) {
@@ -263,6 +283,32 @@ module.exports = async function handler(req, res) {
         channel,
         event_name: event_name || 'cta_whatsapp_click',
         landing_path
+      };
+    } else if (isWhatsappModal) {
+      // Para whatsapp_modal: campos del modal obligatorio (nombre + teléfono)
+      const normalizedLeadNameModal = normalizeString(lead_name_modal);
+      const normalizedLeadPhoneModal = normalizeWhatsapp(lead_phone_modal);
+      
+      insertPayload = {
+        vendor_id: updatedVendor.id,
+        vendor_name: updatedVendor.name,
+        vendor_phone: updatedVendor.phone,
+        event_name: 'whatsapp_modal',
+        channel,
+        landing_path,
+        // Datos del modal
+        lead_name: normalizedLeadNameModal,
+        lead_whatsapp: normalizedLeadPhoneModal,
+        // Metadatos
+        origen_cta: origen_cta || null,
+        user_agent: userAgent,
+        ip_hash: ipHash,
+        // UTMs si vienen
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_content,
+        utm_term,
       };
     } else {
       // Para form_submit: incluir todos los campos
@@ -295,17 +341,37 @@ module.exports = async function handler(req, res) {
       };
     }
 
-    // Insertar SIEMPRE en lead_assignments (sin .single() para evitar errores raros)
+    // Insertar en lead_assignments
+    // Para whatsapp_modal: el insert DEBE ser exitoso para continuar
+    // Para otros eventos: el insert es best-effort (no falla el request)
     const { data: insertedRows, error: insertErr } = await supabase
       .from('lead_assignments')
       .insert(insertPayload)
       .select('id');
 
     let leadAssignmentId = null;
+    let insertSuccess = false;
+    
     if (insertErr) {
       console.error('[assign-vendor] lead_assignments insert error', insertErr);
+      
+      // Para whatsapp_modal: FALLAR si el insert falla
+      if (isWhatsappModal) {
+        return res.status(500).json({
+          success: false,
+          inserted: false,
+          error: 'Error al guardar datos del contacto',
+          vendor: {
+            id: updatedVendor.id,
+            name: updatedVendor.name,
+            phone: updatedVendor.phone,
+            lead_count: updatedVendor.lead_count
+          }
+        });
+      }
     } else if (insertedRows && insertedRows[0]?.id) {
       leadAssignmentId = insertedRows[0].id;
+      insertSuccess = true;
     }
 
     // Paso 5: Log de la asignación (para debugging)
@@ -314,9 +380,27 @@ module.exports = async function handler(req, res) {
       `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
     );
 
-    // Generar whatsapp_url con mensaje personalizado si hay datos del formulario
+    // Generar whatsapp_url con mensaje personalizado según el tipo de evento
     let whatsappUrl = null;
-    if (event_name === "form_submit" && normalizedLeadFullName && normalizedLeadWhatsapp) {
+    let whatsappMessage = null;
+    
+    if (isWhatsappModal) {
+      // Mensaje para whatsapp_modal (solo nombre y WhatsApp)
+      const normalizedLeadNameModal = normalizeString(lead_name_modal);
+      const normalizedLeadPhoneModal = normalizeWhatsapp(lead_phone_modal);
+      
+      whatsappMessage = [
+        "Hola, quiero obtener mi préstamo Mejoravit.",
+        "",
+        "Mis datos son:",
+        `Nombre: ${normalizedLeadNameModal}`,
+        `WhatsApp: ${normalizedLeadPhoneModal}`,
+        "",
+        "Gracias.",
+      ].join("\n");
+
+      whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(whatsappMessage)}`;
+    } else if (event_name === "form_submit" && normalizedLeadFullName && normalizedLeadWhatsapp) {
       // Convertir fecha de YYYY-MM-DD a DD/MM/YYYY para el mensaje
       const formatDateForMessage = (dateStr) => {
         if (!dateStr) return "";
@@ -324,25 +408,25 @@ module.exports = async function handler(req, res) {
         return `${day}/${month}/${year}`;
       };
 
-      const message = [
+      whatsappMessage = [
         "Hola, quiero solicitar el préstamo de Subcuenta de Vivienda con 11% de interés.",
         "",
         "Soy trabajador activo que cotiza en Infonavit y me interesa el préstamo más amigable.",
         "",
         "Mis datos son:",
         `Nombre completo: ${normalizedLeadFullName}`,
-        `Número de afiliación IMSS: ${normalizedLeadImss || 'N/A'}`,
         `Fecha de nacimiento: ${formatDateForMessage(normalizedLeadBirthDate) || 'N/A'}`,
         `WhatsApp: ${normalizedLeadWhatsapp}`,
         "",
         "Gracias.",
       ].join("\n");
 
-      whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(message)}`;
+      whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(whatsappMessage)}`;
     }
 
     // Paso 6: Retornar respuesta exitosa
-    return res.status(200).json({
+    // Para whatsapp_modal: incluir inserted:true explícitamente
+    const response = {
       success: true,
       vendor: {
         id: updatedVendor.id,
@@ -352,7 +436,15 @@ module.exports = async function handler(req, res) {
       },
       lead_assignment_id: leadAssignmentId,
       whatsapp_url: whatsappUrl
-    });
+    };
+    
+    // Agregar campos específicos para whatsapp_modal
+    if (isWhatsappModal) {
+      response.inserted = insertSuccess;
+      response.message = whatsappMessage;
+    }
+    
+    return res.status(200).json(response);
 
   } catch (error) {
     // Manejo de errores inesperados

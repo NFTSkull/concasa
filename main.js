@@ -5,7 +5,8 @@
  * y la generación de links de WhatsApp.
  */
 
-import { trackWhatsAppClick, trackGoogleAdsConversion, trackHeroCTAButtonClick, trackCloseConvertLead } from "./lib/analytics.js";
+// eslint-disable-next-line no-unused-vars -- Se usarán en Bloque 3 para tracking después de INSERT
+import { trackWhatsAppClick, trackGoogleAdsConversion, trackCloseConvertLead } from "./lib/analytics.js";
 import {
   DEFAULT_MESSAGE,
   DEFAULT_WHATSAPP_NUMBER,
@@ -39,6 +40,32 @@ const originInput = /** @type {HTMLInputElement | null} */ (
 const whatsappLoading = document.getElementById("whatsapp-loading");
 /** @type {Array<Record<string, unknown>>} */
 const actionLog = [];
+
+// ============================================
+// MODAL OBLIGATORIO DE WHATSAPP (Bloque 2)
+// ============================================
+/** @type {HTMLElement | null} */
+const whatsappModal = document.getElementById("whatsapp-modal");
+/** @type {HTMLFormElement | null} */
+const whatsappModalForm = /** @type {HTMLFormElement | null} */ (
+  document.getElementById("whatsapp-modal-form")
+);
+/** @type {HTMLInputElement | null} */
+const whatsappModalOriginInput = /** @type {HTMLInputElement | null} */ (
+  document.getElementById("whatsapp-modal-origin")
+);
+/** @type {HTMLInputElement | null} */
+const whatsappModalNameInput = /** @type {HTMLInputElement | null} */ (
+  document.getElementById("whatsapp-modal-name")
+);
+/** @type {HTMLInputElement | null} */
+const whatsappModalPhoneInput = /** @type {HTMLInputElement | null} */ (
+  document.getElementById("whatsapp-modal-phone")
+);
+
+// Estado pendiente para el flujo de WhatsApp
+/** @type {{ origin: string; element: HTMLElement | null; landingPath: string } | null} */
+let pendingWhatsAppData = null;
 
 /**
  * Prepara los datos de coincidencias avanzadas para Meta Pixel
@@ -153,12 +180,17 @@ const toggleModal = (isOpen) => {
   document.body.style.overflow = isOpen ? "hidden" : "";
 };
 
+// eslint-disable-next-line no-unused-vars -- Se usará en Bloque 3
 const toggleWhatsappLoading = (isVisible) => {
   if (!whatsappLoading) return;
   whatsappLoading.classList.toggle("hidden", !isVisible);
   whatsappLoading.setAttribute("aria-hidden", String(!isVisible));
 };
 
+// NOTA: proceedToWhatsAppDirect deshabilitado temporalmente (Bloque 2)
+// Ahora todos los CTAs pasan por el modal obligatorio de captura
+// Se reactivará en Bloque 3 para procesar después del INSERT exitoso
+/*
 const proceedToWhatsAppDirect = async (origin) => {
   toggleWhatsappLoading(true);
 
@@ -206,44 +238,234 @@ const proceedToWhatsAppDirect = async (origin) => {
     toggleWhatsappLoading(false);
   }
 };
+*/
 
+/**
+ * Abre el modal obligatorio de WhatsApp
+ * @param {boolean} isOpen - Si el modal debe estar abierto
+ */
+const toggleWhatsappModal = (isOpen) => {
+  if (!whatsappModal) return;
+  whatsappModal.classList.toggle("hidden", !isOpen);
+  whatsappModal.setAttribute("aria-hidden", String(!isOpen));
+  document.body.style.overflow = isOpen ? "hidden" : "";
+  
+  if (isOpen && whatsappModalNameInput) {
+    // Focus en el primer campo al abrir
+    setTimeout(() => whatsappModalNameInput.focus(), 100);
+  }
+};
+
+/**
+ * Muestra error en el modal de WhatsApp
+ * @param {string} field - Nombre del campo ('wa-fullName' o 'wa-whatsapp')
+ * @param {string} message - Mensaje de error
+ */
+const showWhatsappModalError = (field, message) => {
+  const errorSpan = whatsappModalForm?.querySelector(`[data-error-for="${field}"]`);
+  if (errorSpan) {
+    errorSpan.textContent = message;
+  }
+};
+
+/**
+ * Limpia los errores del modal de WhatsApp
+ */
+const clearWhatsappModalErrors = () => {
+  if (!whatsappModalForm) return;
+  whatsappModalForm.querySelectorAll(".error").forEach((el) => (el.textContent = ""));
+};
+
+/**
+ * Valida los datos del modal de WhatsApp
+ * @returns {{ isValid: boolean; fullName: string; whatsapp: string }}
+ */
+const validateWhatsappModalForm = () => {
+  clearWhatsappModalErrors();
+  let isValid = true;
+  
+  const fullName = whatsappModalNameInput?.value?.trim() ?? "";
+  const rawPhone = whatsappModalPhoneInput?.value ?? "";
+  // Normalizar a solo dígitos
+  const whatsapp = rawPhone.replace(/\D/g, "");
+  
+  if (fullName.length < 2) {
+    showWhatsappModalError("wa-fullName", "Ingresa tu nombre (mínimo 2 caracteres).");
+    isValid = false;
+  }
+  
+  if (whatsapp.length !== 10) {
+    showWhatsappModalError("wa-whatsapp", "Ingresa un número de 10 dígitos.");
+    isValid = false;
+  }
+  
+  return { isValid, fullName, whatsapp };
+};
+
+/**
+ * Intercepta TODOS los clicks en links de WhatsApp y abre el modal obligatorio
+ */
 const updateWhatsappLinks = () => {
   whatsappLinks.forEach((link) => {
-    // Fallback: si el JS no llega a ejecutar el flujo async, al menos existe un href válido.
-    // Nota: el número final se asigna por round robin al hacer click.
+    // Fallback href (por si JS falla)
     link.href = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
 
-    // El botón hero CTA tiene su propio tracking en initHeroCTATracking()
-    // NO hacer preventDefault para permitir navegación normal
-    const isHeroCTA = link.classList.contains('btn-hero-cta');
-    
-    if (isHeroCTA) {
-      // Para el botón hero, NO hacer preventDefault, dejar que navegue normalmente
-      // El tracking se hace en initHeroCTATracking() con sendBeacon
-      return;
-    }
-
-    // Para otros botones, mantener el comportamiento actual (preventDefault + flujo async)
-    link.addEventListener("click", async (e) => {
+    // Interceptar click para TODOS los botones de WhatsApp
+    link.addEventListener("click", (e) => {
       e.preventDefault();
       
-      // Determinar el origen del CTA
-      let origin = "direct-whatsapp";
-      if (link.closest(".hero-ctas")) origin = "hero";
-      else if (link.closest(".mejoravit-cta")) origin = "mejoravit";
-      else if (link.closest(".cta-center")) origin = "cta-center";
-      else if (link.classList.contains("floating-wa")) origin = "floating-wa";
+      // Obtener origen desde data-origin (obligatorio en cada link)
+      const origin = link.getAttribute("data-origin") || "unknown";
+      const landingPath = window.location.pathname + window.location.search;
       
-      // Disparamos evento del Pixel cuando el usuario inicia el flujo de WhatsApp desde el botón del hero
-      if (origin === "hero" && typeof fbq !== 'undefined') {
-        fbq('trackCustom', 'ClickWhatsApp', {
-          value: 163000,
-          currency: 'MXN'
-        });
+      // Guardar datos pendientes
+      pendingWhatsAppData = {
+        origin,
+        element: link,
+        landingPath,
+      };
+      
+      // Guardar origen en el hidden input del modal
+      if (whatsappModalOriginInput) {
+        whatsappModalOriginInput.value = origin;
       }
       
-      await proceedToWhatsAppDirect(origin);
+      // Limpiar formulario y errores
+      whatsappModalForm?.reset();
+      clearWhatsappModalErrors();
+      
+      // Log para debug
+      console.log("[WhatsApp Modal] Interceptado CTA:", origin);
+      
+      // Abrir modal obligatorio
+      toggleWhatsappModal(true);
     });
+  });
+};
+
+/**
+ * Inicializa el modal obligatorio de WhatsApp
+ */
+const initWhatsappModal = () => {
+  // Cerrar modal con botón X
+  const closeBtn = whatsappModal?.querySelector("[data-close-whatsapp-modal]");
+  closeBtn?.addEventListener("click", () => {
+    toggleWhatsappModal(false);
+    pendingWhatsAppData = null;
+  });
+  
+  // Cerrar modal al hacer click en el backdrop
+  whatsappModal?.addEventListener("click", (e) => {
+    if (e.target === whatsappModal) {
+      toggleWhatsappModal(false);
+      pendingWhatsAppData = null;
+    }
+  });
+  
+  // Cerrar modal con ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && whatsappModal && !whatsappModal.classList.contains("hidden")) {
+      toggleWhatsappModal(false);
+      pendingWhatsAppData = null;
+    }
+  });
+  
+  // Manejar submit del formulario
+  whatsappModalForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const validation = validateWhatsappModalForm();
+    if (!validation.isValid) {
+      console.log("[WA MODAL] Validación fallida");
+      return;
+    }
+    
+    // Obtener el botón submit y deshabilitarlo para evitar doble submit
+    /** @type {HTMLButtonElement | null} */
+    const submitBtn = /** @type {HTMLButtonElement | null} */ (
+      whatsappModalForm.querySelector('button[type="submit"]')
+    );
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviando...";
+    }
+    
+    // Construir payload para el API
+    const payload = {
+      event_name: "whatsapp_modal",
+      lead_name: validation.fullName,
+      lead_phone: validation.whatsapp,
+      origen_cta: pendingWhatsAppData?.origin || "unknown",
+      landing_path: pendingWhatsAppData?.landingPath || window.location.pathname + window.location.search,
+    };
+    
+    console.log("[WA MODAL] payload ->", payload);
+    
+    try {
+      // POST al API
+      const response = await fetch("/api/assign-vendor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      
+      // Parsear respuesta
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        data = { success: false, error: "Error al procesar respuesta del servidor" };
+      }
+      
+      console.log("[WA MODAL] api response ->", data);
+      
+      // Verificar condición de éxito ESTRICTA
+      if (response.ok && data.success === true && data.inserted === true && data.whatsapp_url) {
+        console.log("[WA MODAL] success+inserted -> firing ClickWhatsApp + opening WA");
+        
+        // (A) DISPARAR ClickWhatsApp SOLO si insert fue exitoso
+        try {
+          if (typeof fbq !== "undefined") {
+            fbq("trackCustom", "ClickWhatsApp", {
+              placement: payload.origen_cta,
+              link_url: data.whatsapp_url,
+              lead_assignment_id: data.lead_assignment_id,
+            });
+          }
+        } catch (fbqError) {
+          console.warn("[WA MODAL] fbq error:", fbqError);
+        }
+        
+        // (B) ABRIR WHATSAPP
+        const waWindow = window.open(data.whatsapp_url, "_blank", "noopener,noreferrer");
+        if (!waWindow) {
+          // Si popup bloqueado, redirigir en la misma pestaña
+          window.location.href = data.whatsapp_url;
+        }
+        
+        // (C) Cerrar modal y limpiar
+        toggleWhatsappModal(false);
+        pendingWhatsAppData = null;
+        whatsappModalForm.reset();
+        
+      } else {
+        // Error: mostrar mensaje en el modal, NO abrir WhatsApp, NO disparar evento
+        const errorMsg = data.error || "No se pudo guardar, intenta de nuevo.";
+        console.log("[WA MODAL] failed ->", errorMsg);
+        showWhatsappModalError("wa-whatsapp", errorMsg);
+      }
+      
+    } catch (fetchError) {
+      // Error de red
+      console.error("[WA MODAL] fetch error ->", fetchError);
+      showWhatsappModalError("wa-whatsapp", "Error de conexión. Intenta de nuevo.");
+    } finally {
+      // Rehabilitar botón submit
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Hablar por WhatsApp";
+      }
+    }
   });
 };
 
@@ -277,16 +499,11 @@ const clearErrors = (formElement) => {
 const validateForm = (data, formElement) => {
   let isValid = true;
   const fullName = data.get("fullName")?.trim() ?? "";
-  const nss = data.get("nss")?.trim() ?? "";
   const birthDate = data.get("birthDate")?.trim() ?? "";
   const whatsapp = data.get("whatsapp")?.trim() ?? "";
 
   if (fullName.length < 3) {
     showError("fullName", "Ingresa tu nombre completo.", formElement);
-    isValid = false;
-  }
-  if (nss.length < 10 || !/^\d+$/.test(nss)) {
-    showError("nss", "Ingresa tu número de afiliación (solo números).", formElement);
     isValid = false;
   }
   if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
@@ -301,7 +518,6 @@ const validateForm = (data, formElement) => {
   return {
     isValid,
     fullName,
-    nss,
     birthDate,
     whatsapp,
   };
@@ -328,7 +544,7 @@ const handleSubmit = async (event) => {
   const formDataForDB = {
     lead_full_name: validation.fullName,
     lead_whatsapp: validation.whatsapp,
-    lead_imss: validation.nss,
+    lead_imss: null,
     lead_birth_date: validation.birthDate,
     origen_cta: typeof originCTA === 'string' ? originCTA : "hero",
   };
@@ -350,7 +566,6 @@ const handleSubmit = async (event) => {
     "",
     "Mis datos son:",
     `Nombre completo: ${validation.fullName}`,
-    `Número de afiliación IMSS: ${validation.nss}`,
     `Fecha de nacimiento: ${formatDateForMessage(validation.birthDate)}`,
     `WhatsApp: ${validation.whatsapp}`,
     "",
@@ -527,7 +742,6 @@ const handlePageFormSubmit = async (event) => {
 
   // Leer campos del formulario
   const fullName = formData.get("fullName")?.toString().trim() || "";
-  const nss = formData.get("nss")?.toString().trim() || "";
   const birthDate = formData.get("birthDate")?.toString().trim() || "";
   let whatsapp = formData.get("whatsapp")?.toString().trim() || "";
   
@@ -545,7 +759,7 @@ const handlePageFormSubmit = async (event) => {
   // Construir payload con nombres exactos que espera la BD
   const payload = {
     lead_full_name: fullName || null,
-    lead_imss: nss || null,
+    lead_imss: null,
     lead_birth_date: birthDate || null,
     lead_whatsapp: whatsapp || null,
     channel: "web",
@@ -759,31 +973,25 @@ const initVideoAutoplay = () => {
 };
 
 
-/**
- * Inicializa el tracking específico para el botón hero CTA de WhatsApp
- * Obtiene vendor asignado por round robin y actualiza el href antes de navegar
- */
+// NOTA: initHeroCTATracking deshabilitado (Bloque 2)
+// Ahora TODOS los CTAs de WhatsApp (incluyendo hero) pasan por el modal obligatorio
+// Se reactivará parcialmente en Bloque 3 para el tracking después del INSERT exitoso
+/*
 const initHeroCTATracking = () => {
   const heroCTAButton = document.querySelector('a.btn-hero-cta[data-whatsapp-link]');
   if (!heroCTAButton || !(heroCTAButton instanceof HTMLAnchorElement)) return;
 
-  // Agregar listener para obtener vendor por round robin y luego navegar
   heroCTAButton.addEventListener('click', async (e) => {
-    // PreventDefault temporalmente para obtener vendor asignado
     e.preventDefault();
-    
-    // Mostrar mensaje de "Redirigiendo a WhatsApp"
     toggleWhatsappLoading(true);
     
     try {
-      // Preparar payload para /api/assign-vendor
       const payload = {
         event_name: 'cta_whatsapp_click',
         channel: 'web',
         landing_path: window.location.pathname + window.location.search,
       };
 
-      // Llamar a /api/assign-vendor para obtener vendor asignado por round robin
       const response = await fetch('/api/assign-vendor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -793,15 +1001,12 @@ const initHeroCTATracking = () => {
       const data = await response.json();
       
       if (data.success && data.vendor && data.vendor.phone) {
-        // Actualizar href con el vendor asignado por round robin
         const assignedPhone = data.vendor.phone;
         const whatsappUrl = withWhatsappUrl(DEFAULT_MESSAGE, assignedPhone);
         heroCTAButton.href = whatsappUrl;
         
-        // Disparar evento de conversión close_convert_lead (GA4)
         trackCloseConvertLead({ linkUrl: whatsappUrl });
         
-        // Disparar evento de Meta Pixel antes de navegar
         try {
           if (typeof fbq !== 'undefined') {
             fbq('trackCustom', 'ClickWhatsApp', {
@@ -809,19 +1014,16 @@ const initHeroCTATracking = () => {
               link_url: whatsappUrl
             });
           }
-        } catch (e) {}
+        } catch (_e) {}
         
-        // Navegar al WhatsApp del vendor asignado (con delay para que no se pierda el evento)
         setTimeout(() => {
           window.location.href = whatsappUrl;
         }, 200);
       } else {
-        // Si falla, usar número por defecto
         console.error('[Hero CTA] Error obteniendo vendor, usando default:', data.error);
         const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
         trackCloseConvertLead({ linkUrl: fallbackUrl });
         
-        // Disparar evento de Meta Pixel antes de navegar (fallback)
         try {
           if (typeof fbq !== 'undefined') {
             fbq('trackCustom', 'ClickWhatsApp', {
@@ -829,21 +1031,18 @@ const initHeroCTATracking = () => {
               link_url: fallbackUrl
             });
           }
-        } catch (e) {}
+        } catch (_e) {}
         
-        // Navegar al WhatsApp fallback (con delay para que no se pierda el evento)
         setTimeout(() => {
           window.location.href = fallbackUrl;
         }, 200);
       }
     } catch (error) {
-      // Si hay error, usar número por defecto y navegar
       console.error('[Hero CTA] Error:', error);
-      toggleWhatsappLoading(false); // Ocultar loading solo si hay error antes de navegar
+      toggleWhatsappLoading(false);
       const fallbackUrl = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
       trackCloseConvertLead({ linkUrl: fallbackUrl });
       
-      // Disparar evento de Meta Pixel antes de navegar (fallback)
       try {
         if (typeof fbq !== 'undefined') {
           fbq('trackCustom', 'ClickWhatsApp', {
@@ -851,25 +1050,26 @@ const initHeroCTATracking = () => {
             link_url: fallbackUrl
           });
         }
-      } catch (e) {}
+      } catch (_e) {}
       
-      // Navegar al WhatsApp fallback (con delay para que no se pierda el evento)
       setTimeout(() => {
         window.location.href = fallbackUrl;
       }, 200);
     }
   });
 };
+*/
 
 // Inicializar funciones cuando el DOM esté listo
 const init = () => {
   updateWhatsappLinks();
+  initWhatsappModal(); // Modal obligatorio para captura antes de WhatsApp
   initModal();
   initForm();
   initAnimations();
   initMobileMenu();
   initVideoAutoplay();
-  initHeroCTATracking();
+  // initHeroCTATracking(); // Deshabilitado: ahora todos los CTAs pasan por el modal obligatorio
 };
 
 // Ejecutar cuando el DOM esté listo
