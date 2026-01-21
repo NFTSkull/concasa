@@ -325,7 +325,7 @@ module.exports = async function handler(req, res) {
       const { data: insertedContact, error: contactInsertErr } = await supabase
         .from('whatsapp_contacts')
         .insert(whatsappContactsPayload)
-        .select('id, fecha_hora_mx')
+        .select('id')
         .single();
       
       if (contactInsertErr) {
@@ -351,17 +351,6 @@ module.exports = async function handler(req, res) {
       
       // INSERT exitoso en whatsapp_contacts
       console.log(`[assign-vendor] whatsapp_contacts insert OK, id=${insertedContact.id}`);
-      
-      // Enviar a Make webhook (no bloquea si falla)
-      const fechaHoraMx = insertedContact?.fecha_hora_mx ?? null;
-      const makePayload = {
-        cliente_nombre: normalizedLeadNameModal,
-        cliente_telefono: normalizedLeadPhoneModal,
-        asesor_nombre: updatedVendor.name,
-        fecha_hora_mx: fechaHoraMx,
-      };
-      await sendLeadToMake(makePayload);
-      makeWebhookSent = true;
       
       return res.status(200).json({
         success: true,
