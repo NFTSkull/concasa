@@ -251,6 +251,11 @@ const toggleWhatsappModal = (isOpen) => {
   document.body.style.overflow = isOpen ? "hidden" : "";
   
   if (isOpen && whatsappModalNameInput) {
+    // Restaurar subtítulo original al abrir
+    const modalSubtitle = whatsappModal.querySelector(".modal-subtitle");
+    if (modalSubtitle) {
+      modalSubtitle.textContent = "Ingresa tu nombre y WhatsApp para que un asesor te atienda de inmediato.";
+    }
     // Focus en el primer campo al abrir
     setTimeout(() => whatsappModalNameInput.focus(), 100);
   }
@@ -423,6 +428,18 @@ const initWhatsappModal = () => {
       if (response.ok && data.success === true && data.inserted === true && data.whatsapp_url) {
         console.log("[WA MODAL] success+inserted -> firing ClickWhatsApp + opening WA");
         
+        // Mostrar mensaje de redirección
+        if (submitBtn) {
+          submitBtn.textContent = "Redirigiendo a WhatsApp...";
+          submitBtn.disabled = true;
+        }
+        
+        // Actualizar subtítulo del modal para mostrar mensaje de carga
+        const modalSubtitle = whatsappModal?.querySelector(".modal-subtitle");
+        if (modalSubtitle) {
+          modalSubtitle.textContent = "Redirigiendo a WhatsApp...";
+        }
+        
         // (A) DISPARAR ClickWhatsApp SOLO si insert fue exitoso
         try {
           if (typeof fbq !== "undefined") {
@@ -435,6 +452,9 @@ const initWhatsappModal = () => {
         } catch (fbqError) {
           console.warn("[WA MODAL] fbq error:", fbqError);
         }
+        
+        // Pequeño delay para que el usuario vea el mensaje de redirección
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // (B) ABRIR WHATSAPP
         const waWindow = window.open(data.whatsapp_url, "_blank", "noopener,noreferrer");
@@ -453,15 +473,27 @@ const initWhatsappModal = () => {
         const errorMsg = data.error || "No se pudo guardar, intenta de nuevo.";
         console.log("[WA MODAL] failed ->", errorMsg);
         showWhatsappModalError("wa-whatsapp", errorMsg);
+        
+        // Restaurar subtítulo original
+        const modalSubtitle = whatsappModal?.querySelector(".modal-subtitle");
+        if (modalSubtitle) {
+          modalSubtitle.textContent = "Ingresa tu nombre y WhatsApp para que un asesor te atienda de inmediato.";
+        }
       }
       
     } catch (fetchError) {
       // Error de red
       console.error("[WA MODAL] fetch error ->", fetchError);
       showWhatsappModalError("wa-whatsapp", "Error de conexión. Intenta de nuevo.");
+      
+      // Restaurar subtítulo original
+      const modalSubtitle = whatsappModal?.querySelector(".modal-subtitle");
+      if (modalSubtitle) {
+        modalSubtitle.textContent = "Ingresa tu nombre y WhatsApp para que un asesor te atienda de inmediato.";
+      }
     } finally {
-      // Rehabilitar botón submit
-      if (submitBtn) {
+      // Rehabilitar botón submit (solo si no fue exitoso, porque si fue exitoso ya se cerró el modal)
+      if (submitBtn && whatsappModal && !whatsappModal.classList.contains("hidden")) {
         submitBtn.disabled = false;
         submitBtn.textContent = "Hablar por WhatsApp";
       }
