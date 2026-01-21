@@ -25,3 +25,15 @@
 - **Tracking universal:** Se agregó Google Tag (gtag.js) a `contacto.html` para asegurar que GA4 esté disponible en todas las páginas del sitio.
 - **Nota importante:** Se debe reemplazar `AW-CONVERSION_ID/CONVERSION_LABEL` en `lib/analytics.js` con los valores reales proporcionados por Google Ads al configurar la acción de conversión.
 
+## 2025-01-20 — B4
+- **UI/UX Modal WhatsApp:** Se refactorizó completamente el CSS del modal `#whatsapp-modal` para garantizar una experiencia óptima en todos los dispositivos.
+- **Decisiones técnicas:**
+  - **Touch targets:** Se aumentaron los tamaños mínimos de botones e inputs a 44-48px para cumplir con WCAG 2.1 (target size).
+  - **Font size iOS:** Se fijó `font-size: 16px` en inputs para evitar el zoom automático de Safari en iOS al enfocar campos.
+  - **Viewport dinámico:** Se usó `100dvh` (dynamic viewport height) que considera la barra de navegación y teclado virtual en móvil.
+  - **Safe areas iPhone:** Se aplicó `env(safe-area-inset-bottom)` al padding inferior para iPhones con notch.
+  - **Media queries específicas:** Se crearon breakpoints para pantallas muy pequeñas (<=360px), landscape móvil (max-height: 500px), tablets (768-1024px), iOS Safari (`@supports (-webkit-touch-callout: none)`), y Android Chrome (`-webkit-min-device-pixel-ratio`).
+  - **Accesibilidad:** Se respeta `prefers-reduced-motion` desactivando animaciones para usuarios sensibles.
+  - **Feedback táctil:** Estados `:active` con `transform: scale()` para todos los elementos clicables, mejorando la percepción de interactividad.
+- **Pruebas recomendadas:** Verificar en Chrome DevTools (responsive), Safari iOS (simulador o dispositivo real), y Android Chrome.
+

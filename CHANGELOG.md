@@ -22,3 +22,12 @@
 - Se agregó Google Tag (gtag.js) a `contacto.html` para asegurar tracking en todas las páginas.
 - IMPORTANTE: Reemplazar `AW-CONVERSION_ID/CONVERSION_LABEL` en `lib/analytics.js` con los valores reales proporcionados por Google Ads.
 
+## B4 - 2025-01-20
+- Se optimizaron los estilos del modal de WhatsApp (`#whatsapp-modal`) para todos los dispositivos (Android, iPhone, tablets).
+- Mejoras de accesibilidad: touch targets mínimos de 44-48px, fuentes de 16px para evitar zoom en iOS.
+- Se agregaron media queries específicas para: pantallas pequeñas (<=360px), landscape móvil, tablets, iOS Safari, y Android Chrome.
+- Safe areas para iPhone con notch (`env(safe-area-inset-bottom)`).
+- Altura dinámica del viewport (`100dvh`) para manejo correcto del teclado virtual.
+- Animaciones de entrada/salida suaves con soporte para `prefers-reduced-motion`.
+- Feedback táctil mejorado con estados `:active` para todos los elementos interactivos.
+

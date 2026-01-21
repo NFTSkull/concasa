@@ -1509,67 +1509,185 @@ main {
 }
 
 
+/* ========================================
+   MODAL BACKDROP - Base styles
+   ======================================== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
   z-index: 40;
+  -webkit-overflow-scrolling: touch;
+  /* Animación de entrada */
+  opacity: 1;
+  transition: opacity 0.25s ease;
 }
 
+.modal-backdrop.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* ========================================
+   MODAL CARD - Container principal
+   ======================================== */
 .modal-card {
   background: var(--white);
-  border-radius: 24px;
-  padding: 2rem;
-  width: min(520px, 100%);
-  box-shadow: var(--shadow);
+  border-radius: 20px;
+  padding: 1.75rem;
+  width: min(420px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem); /* Altura dinámica para móvil */
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.875rem;
+  /* Animación de entrada */
+  transform: translateY(0) scale(1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Safe area para iPhone */
+  padding-bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
 }
 
+.modal-backdrop.hidden .modal-card {
+  transform: translateY(20px) scale(0.95);
+}
+
+/* ========================================
+   MODAL HEADER
+   ======================================== */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+}
+
+/* ========================================
+   CLOSE BUTTON - Touch optimizado
+   ======================================== */
 .close-btn {
   border: none;
   background: var(--gray);
   border-radius: 999px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  flex-shrink: 0;
 }
 
+.close-btn:hover {
+  background: var(--soft-gray);
+  color: var(--black);
+}
+
+.close-btn:active {
+  transform: scale(0.92);
+  background: var(--soft-gray);
+}
+
+/* ========================================
+   MODAL SUBTITLE
+   ======================================== */
+.modal-subtitle {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* ========================================
+   MODAL FORM - Formulario optimizado
+   ======================================== */
 .modal-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-top: 0.25rem;
 }
 
 .modal-form label {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
   font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--black);
 }
 
 .modal-form input {
-  padding: 0.85rem 1rem;
+  padding: 0.9rem 1rem;
   border-radius: 12px;
-  border: 1px solid var(--soft-gray);
-  font-size: 1rem;
+  border: 2px solid var(--soft-gray);
+  font-size: 16px; /* Mínimo 16px para evitar zoom en iOS */
+  font-family: inherit;
+  color: var(--black);
+  background: var(--white);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  /* Touch optimizado */
+  min-height: 48px;
+  touch-action: manipulation;
 }
 
-.modal-subtitle {
-  color: var(--text-muted);
-  margin: 0;
+.modal-form input::placeholder {
+  color: rgba(15, 27, 27, 0.4);
+}
+
+.modal-form input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(11, 163, 96, 0.12);
+}
+
+.modal-form input[aria-invalid="true"],
+.modal-form input:invalid:not(:placeholder-shown) {
+  border-color: var(--danger);
+}
+
+.modal-form input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.12);
+}
+
+/* Submit button dentro del modal */
+.modal-form .btn {
+  margin-top: 0.5rem;
+  min-height: 52px;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 100%;
+}
+
+.modal-form .btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .whatsapp-loading-overlay {
@@ -2602,10 +2720,99 @@ main {
     font-weight: 600;
   }
 
+  /* ========================================
+     MODAL WHATSAPP - Móvil (768px y menos)
+     ======================================== */
+  
+  /* Modal backdrop móvil */
+  .modal-backdrop {
+    padding: 0.75rem;
+    /* Alineación al centro para mejor UX en móvil */
+    align-items: center;
+  }
+
+  /* Modal card móvil - optimizado para todos los dispositivos */
+  .modal-card {
+    width: calc(100vw - 1.5rem);
+    max-width: 400px;
+    padding: 1.5rem;
+    border-radius: 18px;
+    gap: 0.75rem;
+    /* Altura máxima considerando teclado virtual */
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    /* Safe area para iPhone con notch */
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .modal-header {
+    gap: 0.5rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.15rem;
+    line-height: 1.35;
+  }
+
+  .close-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .modal-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .modal-form {
+    gap: 0.875rem;
+    margin-top: 0.125rem;
+  }
+
+  .modal-form label {
+    font-size: 0.875rem;
+    gap: 0.35rem;
+  }
+
+  .modal-form input {
+    padding: 0.875rem 1rem;
+    font-size: 16px; /* CRÍTICO: Evita zoom automático en iOS */
+    min-height: 50px; /* Touch target mínimo accesible */
+    border-radius: 10px;
+  }
+
+  .modal-form .btn {
+    min-height: 54px;
+    font-size: 1rem;
+    border-radius: 12px;
+    margin-top: 0.375rem;
+  }
+
+  .modal-form .btn:active {
+    transform: scale(0.98);
+  }
+
+  /* Error messages móvil */
+  .modal-form .error {
+    font-size: 0.8rem;
+    min-height: 1rem;
+  }
+
+  /* Privacy note móvil */
+  .privacy-note {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    margin-top: 0.25rem;
+  }
+
   /* Modales legales en móvil */
   .modal-legal {
     max-width: 95vw;
     max-height: 85vh;
+    max-height: 85dvh;
     padding: 1.5rem;
   }
 
@@ -2641,12 +2848,97 @@ main {
   .location-option {
     font-size: 0.9rem;
     padding: 0.85rem;
+    min-height: 48px;
   }
 }
 
-/* Optimización específica para Android */
+/* ========================================
+   PANTALLAS MUY PEQUEÑAS (360px y menos)
+   Para Android económicos y SE antiguos
+   ======================================== */
+@media screen and (max-width: 360px) {
+  .modal-card {
+    width: calc(100vw - 1rem);
+    padding: 1.25rem;
+    gap: 0.625rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.05rem;
+  }
+
+  .close-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+
+  .modal-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .modal-form label {
+    font-size: 0.825rem;
+  }
+
+  .modal-form input {
+    padding: 0.8rem 0.875rem;
+    min-height: 48px;
+  }
+
+  .modal-form .btn {
+    min-height: 50px;
+    font-size: 0.95rem;
+  }
+
+  .privacy-note {
+    font-size: 0.75rem;
+  }
+}
+
+/* ========================================
+   OPTIMIZACIÓN iOS (Safari)
+   ======================================== */
+@supports (-webkit-touch-callout: none) {
+  /* Solo Safari en iOS */
+  .modal-backdrop {
+    /* Prevenir scroll del body cuando modal está abierto */
+    overscroll-behavior: contain;
+  }
+
+  .modal-card {
+    /* Mejor manejo de altura con teclado virtual en iOS */
+    max-height: calc(100vh - 1rem);
+    max-height: calc(100dvh - 1rem);
+    /* Momentum scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-form input {
+    /* Prevenir zoom en focus en iOS */
+    font-size: 16px !important;
+    /* Mejor estilo del placeholder */
+    -webkit-text-fill-color: var(--black);
+  }
+
+  .modal-form input::placeholder {
+    -webkit-text-fill-color: rgba(15, 27, 27, 0.4);
+  }
+
+  /* Mejorar tap highlight en iOS */
+  .close-btn,
+  .modal-form .btn,
+  .modal-form input {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ========================================
+   OPTIMIZACIÓN ANDROID (Chrome/WebKit)
+   ======================================== */
 @media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 0) {
-  /* Detectar navegadores basados en WebKit (Chrome, Samsung Browser, etc.) comúnmente usados en Android */
+  /* Detectar navegadores WebKit (Chrome, Samsung Browser) en Android */
 
   .whatsapp-loading-card {
     padding: 1.25rem 1.5rem;
@@ -2657,6 +2949,35 @@ main {
 
   .whatsapp-loading-card p {
     font-size: 0.9rem;
+  }
+
+  /* Modal específico Android */
+  .modal-card {
+    /* Prevenir problemas con URL bar en Android Chrome */
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+  }
+
+  .modal-form input {
+    /* Mejorar rendering en Android */
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Active states para feedback táctil */
+  .close-btn:active {
+    background: var(--soft-gray);
+    transform: scale(0.9);
+  }
+
+  .modal-form .btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 6px 15px rgba(11, 163, 96, 0.25);
+  }
+
+  .floating-wa:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 12px rgba(11, 163, 96, 0.35);
   }
 
   /* Sección de video en móvil */
@@ -2734,20 +3055,7 @@ main {
     font-size: 0.95rem;
   }
 
-  .floating-wa:active {
-    transform: scale(0.95);
-    box-shadow: 0 4px 12px rgba(11, 163, 96, 0.35);
-  }
-
-
-  /* Modal */
-  .modal-card {
-    width: calc(100% - 2rem);
-    padding: 1.5rem;
-    margin: 1rem;
-  }
-
-  /* Formulario */
+  /* Formulario principal */
   .form-container {
     padding: 2rem 1.25rem;
     border-radius: 24px;
@@ -2771,7 +3079,7 @@ main {
 
   .contact-form input {
     padding: 0.85rem 1rem;
-    font-size: 0.95rem;
+    font-size: 16px;
   }
 
   /* Badge y eyebrow */
@@ -2782,6 +3090,116 @@ main {
 
   .eyebrow {
     font-size: 0.7rem;
+  }
+}
+
+/* ========================================
+   LANDSCAPE MÓVIL
+   ======================================== */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .modal-backdrop {
+    padding: 0.5rem;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .modal-card {
+    max-height: none;
+    margin: 0.5rem auto;
+    padding: 1.25rem;
+    gap: 0.625rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1rem;
+  }
+
+  .modal-subtitle {
+    font-size: 0.85rem;
+    display: none; /* Ocultar para ahorrar espacio */
+  }
+
+  .modal-form {
+    gap: 0.625rem;
+  }
+
+  .modal-form label {
+    font-size: 0.8rem;
+    gap: 0.25rem;
+  }
+
+  .modal-form input {
+    padding: 0.65rem 0.75rem;
+    min-height: 42px;
+  }
+
+  .modal-form .btn {
+    min-height: 46px;
+    margin-top: 0.25rem;
+  }
+
+  .privacy-note {
+    font-size: 0.7rem;
+    margin-top: 0;
+  }
+}
+
+/* ========================================
+   TABLETS (768px - 1024px)
+   ======================================== */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .modal-card {
+    width: min(450px, 85vw);
+    padding: 2rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .modal-form input {
+    padding: 1rem 1.125rem;
+    min-height: 52px;
+  }
+
+  .modal-form .btn {
+    min-height: 54px;
+  }
+}
+
+/* ========================================
+   MODO OSCURO (si el sistema lo tiene)
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  /* Por ahora, mantener diseño light para consistencia de marca */
+  /* Descomenta si quieres soporte dark mode:
+  .modal-card {
+    background: #1a1a1a;
+    color: #f5f5f5;
+  }
+  .modal-form input {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #f5f5f5;
+  }
+  */
+}
+
+/* ========================================
+   REDUCIR MOVIMIENTO (Accesibilidad)
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop,
+  .modal-card,
+  .close-btn,
+  .modal-form .btn,
+  .modal-form input {
+    transition: none;
+    animation: none;
+  }
+
+  .modal-backdrop.hidden .modal-card {
+    transform: none;
   }
 }
 
