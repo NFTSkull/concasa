@@ -26,6 +26,7 @@
  */
 
 const { getSupabaseClient } = require('../lib/supabaseServer');
+const { sendLeadToMake } = require('../lib/makeWebhook');
 const crypto = require('crypto');
 
 module.exports = async function handler(req, res) {
@@ -143,6 +144,9 @@ module.exports = async function handler(req, res) {
     // 🎯 HISTORIAL: guardar asignación en lead_assignments
     // (después de actualizar lead_count, antes del log)
     // ============================================
+
+    // Bandera para evitar envío duplicado a Make webhook
+    let makeWebhookSent = false;
 
     const userAgent = req.headers["user-agent"] || null;
 
@@ -321,7 +325,7 @@ module.exports = async function handler(req, res) {
       const { data: insertedContact, error: contactInsertErr } = await supabase
         .from('whatsapp_contacts')
         .insert(whatsappContactsPayload)
-        .select('id')
+        .select('id, fecha_hora_mx')
         .single();
       
       if (contactInsertErr) {
@@ -347,6 +351,17 @@ module.exports = async function handler(req, res) {
       
       // INSERT exitoso en whatsapp_contacts
       console.log(`[assign-vendor] whatsapp_contacts insert OK, id=${insertedContact.id}`);
+      
+      // Enviar a Make webhook (no bloquea si falla)
+      const fechaHoraMx = insertedContact?.fecha_hora_mx ?? null;
+      const makePayload = {
+        cliente_nombre: normalizedLeadNameModal,
+        cliente_telefono: normalizedLeadPhoneModal,
+        asesor_nombre: updatedVendor.name,
+        fecha_hora_mx: fechaHoraMx,
+      };
+      await sendLeadToMake(makePayload);
+      makeWebhookSent = true;
       
       return res.status(200).json({
         success: true,
@@ -398,7 +413,7 @@ module.exports = async function handler(req, res) {
     const { data: insertedRows, error: insertErr } = await supabase
       .from('lead_assignments')
       .insert(insertPayload)
-      .select('id');
+      .select('id, fecha_hora_mx');
 
     let leadAssignmentId = null;
     
@@ -407,6 +422,26 @@ module.exports = async function handler(req, res) {
       // Para CTA clicks y form_submit: log pero no falla el request
     } else if (insertedRows && insertedRows[0]?.id) {
       leadAssignmentId = insertedRows[0].id;
+      
+      // Enviar a Make webhook solo si NO se envió antes y hay datos del lead (nombre y teléfono)
+      // No enviar para CTA clicks sin datos del lead
+      if (!makeWebhookSent) {
+        const hasLeadData = (insertPayload.lead_name || insertPayload.lead_full_name) && 
+                            (insertPayload.lead_whatsapp || insertPayload.lead_phone);
+        
+        if (hasLeadData) {
+          const insertedAssignment = insertedRows[0];
+          const fechaHoraMx = insertedAssignment?.fecha_hora_mx ?? insertPayload?.fecha_hora_mx ?? null;
+          const makePayload = {
+            cliente_nombre: insertPayload.lead_name || insertPayload.lead_full_name || null,
+            cliente_telefono: insertPayload.lead_whatsapp || insertPayload.lead_phone || null,
+            asesor_nombre: updatedVendor.name,
+            fecha_hora_mx: fechaHoraMx,
+          };
+          await sendLeadToMake(makePayload);
+          makeWebhookSent = true;
+        }
+      }
     }
 
     // Paso 5: Log de la asignación (para debugging)

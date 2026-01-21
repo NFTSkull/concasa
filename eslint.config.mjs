@@ -17,7 +17,7 @@ export default [
     },
   },
   {
-    files: ["api/**/*.js", "lib/supabaseServer.js"],
+    files: ["api/**/*.js", "lib/supabaseServer.js", "lib/makeWebhook.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "commonjs",
