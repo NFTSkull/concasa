@@ -285,31 +285,83 @@ module.exports = async function handler(req, res) {
         landing_path
       };
     } else if (isWhatsappModal) {
-      // Para whatsapp_modal: campos del modal obligatorio (nombre + teléfono)
+      // Para whatsapp_modal: insertar en tabla whatsapp_contacts (NO en lead_assignments)
+      // Generar mensaje y URL de WhatsApp ANTES del insert
       const normalizedLeadNameModal = normalizeString(lead_name_modal);
       const normalizedLeadPhoneModal = normalizeWhatsapp(lead_phone_modal);
       
-      insertPayload = {
+      const whatsappMessageForInsert = [
+        "Hola, quiero obtener mi préstamo Mejoravit.",
+        "",
+        "Mis datos son:",
+        `Nombre: ${normalizedLeadNameModal}`,
+        `WhatsApp: ${normalizedLeadPhoneModal}`,
+        "",
+        "Gracias.",
+      ].join("\n");
+      
+      const whatsappUrlForInsert = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(whatsappMessageForInsert)}`;
+      
+      // Payload con SOLO columnas que existen en whatsapp_contacts
+      const whatsappContactsPayload = {
+        lead_name: normalizedLeadNameModal,
+        lead_phone: normalizedLeadPhoneModal,
         vendor_id: updatedVendor.id,
         vendor_name: updatedVendor.name,
         vendor_phone: updatedVendor.phone,
-        event_name: 'whatsapp_modal',
+        origen_cta: origen_cta || null,
         channel,
         landing_path,
-        // Datos del modal
-        lead_name: normalizedLeadNameModal,
-        lead_whatsapp: normalizedLeadPhoneModal,
-        // Metadatos
-        origen_cta: origen_cta || null,
-        user_agent: userAgent,
-        ip_hash: ipHash,
-        // UTMs si vienen
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_content,
-        utm_term,
+        whatsapp_message: whatsappMessageForInsert,
+        whatsapp_link_url: whatsappUrlForInsert,
+        // assigned_at usa DEFAULT NOW() en la tabla
       };
+      
+      // INSERT en whatsapp_contacts (tabla separada)
+      const { data: insertedContact, error: contactInsertErr } = await supabase
+        .from('whatsapp_contacts')
+        .insert(whatsappContactsPayload)
+        .select('id')
+        .single();
+      
+      if (contactInsertErr) {
+        console.error('[assign-vendor] whatsapp_contacts insert error', contactInsertErr);
+        return res.status(500).json({
+          success: false,
+          inserted: false,
+          error: 'Error al guardar datos del contacto',
+          supabase_error: {
+            message: contactInsertErr.message,
+            details: contactInsertErr.details,
+            hint: contactInsertErr.hint,
+            code: contactInsertErr.code,
+          },
+          vendor: {
+            id: updatedVendor.id,
+            name: updatedVendor.name,
+            phone: updatedVendor.phone,
+            lead_count: updatedVendor.lead_count
+          }
+        });
+      }
+      
+      // INSERT exitoso en whatsapp_contacts
+      console.log(`[assign-vendor] whatsapp_contacts insert OK, id=${insertedContact.id}`);
+      
+      return res.status(200).json({
+        success: true,
+        inserted: true,
+        whatsapp_contact_id: insertedContact.id,
+        vendor: {
+          id: updatedVendor.id,
+          name: updatedVendor.name,
+          phone: updatedVendor.phone,
+          lead_count: updatedVendor.lead_count
+        },
+        whatsapp_url: whatsappUrlForInsert,
+        message: whatsappMessageForInsert,
+      });
+      
     } else {
       // Para form_submit: incluir todos los campos
       insertPayload = {
@@ -341,37 +393,20 @@ module.exports = async function handler(req, res) {
       };
     }
 
-    // Insertar en lead_assignments
-    // Para whatsapp_modal: el insert DEBE ser exitoso para continuar
-    // Para otros eventos: el insert es best-effort (no falla el request)
+    // Insertar en lead_assignments (para CTA clicks y form_submit, NO para whatsapp_modal)
+    // whatsapp_modal ya retornó arriba con su propio insert en whatsapp_contacts
     const { data: insertedRows, error: insertErr } = await supabase
       .from('lead_assignments')
       .insert(insertPayload)
       .select('id');
 
     let leadAssignmentId = null;
-    let insertSuccess = false;
     
     if (insertErr) {
       console.error('[assign-vendor] lead_assignments insert error', insertErr);
-      
-      // Para whatsapp_modal: FALLAR si el insert falla
-      if (isWhatsappModal) {
-        return res.status(500).json({
-          success: false,
-          inserted: false,
-          error: 'Error al guardar datos del contacto',
-          vendor: {
-            id: updatedVendor.id,
-            name: updatedVendor.name,
-            phone: updatedVendor.phone,
-            lead_count: updatedVendor.lead_count
-          }
-        });
-      }
+      // Para CTA clicks y form_submit: log pero no falla el request
     } else if (insertedRows && insertedRows[0]?.id) {
       leadAssignmentId = insertedRows[0].id;
-      insertSuccess = true;
     }
 
     // Paso 5: Log de la asignación (para debugging)
@@ -380,27 +415,11 @@ module.exports = async function handler(req, res) {
       `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
     );
 
-    // Generar whatsapp_url con mensaje personalizado según el tipo de evento
+    // Generar whatsapp_url con mensaje personalizado para form_submit
     let whatsappUrl = null;
     let whatsappMessage = null;
     
-    if (isWhatsappModal) {
-      // Mensaje para whatsapp_modal (solo nombre y WhatsApp)
-      const normalizedLeadNameModal = normalizeString(lead_name_modal);
-      const normalizedLeadPhoneModal = normalizeWhatsapp(lead_phone_modal);
-      
-      whatsappMessage = [
-        "Hola, quiero obtener mi préstamo Mejoravit.",
-        "",
-        "Mis datos son:",
-        `Nombre: ${normalizedLeadNameModal}`,
-        `WhatsApp: ${normalizedLeadPhoneModal}`,
-        "",
-        "Gracias.",
-      ].join("\n");
-
-      whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(whatsappMessage)}`;
-    } else if (event_name === "form_submit" && normalizedLeadFullName && normalizedLeadWhatsapp) {
+    if (event_name === "form_submit" && normalizedLeadFullName && normalizedLeadWhatsapp) {
       // Convertir fecha de YYYY-MM-DD a DD/MM/YYYY para el mensaje
       const formatDateForMessage = (dateStr) => {
         if (!dateStr) return "";
@@ -424,9 +443,9 @@ module.exports = async function handler(req, res) {
       whatsappUrl = `https://wa.me/52${updatedVendor.phone}?text=${encodeURIComponent(whatsappMessage)}`;
     }
 
-    // Paso 6: Retornar respuesta exitosa
-    // Para whatsapp_modal: incluir inserted:true explícitamente
-    const response = {
+    // Paso 6: Retornar respuesta exitosa (para CTA clicks y form_submit)
+    // Nota: whatsapp_modal ya retornó arriba con su propia respuesta
+    return res.status(200).json({
       success: true,
       vendor: {
         id: updatedVendor.id,
@@ -436,15 +455,7 @@ module.exports = async function handler(req, res) {
       },
       lead_assignment_id: leadAssignmentId,
       whatsapp_url: whatsappUrl
-    };
-    
-    // Agregar campos específicos para whatsapp_modal
-    if (isWhatsappModal) {
-      response.inserted = insertSuccess;
-      response.message = whatsappMessage;
-    }
-    
-    return res.status(200).json(response);
+    });
 
   } catch (error) {
     // Manejo de errores inesperados
