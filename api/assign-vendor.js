@@ -303,6 +303,15 @@ module.exports = async function handler(req, res) {
       // INSERT exitoso en whatsapp_contacts
       console.log(`[assign-vendor] whatsapp_contacts insert OK, id=${insertedContact.id}`);
       
+      // Enviar a Make webhook (no bloquea si falla)
+      const makePayload = {
+        cliente_nombre: normalizedLeadNameModal,
+        cliente_telefono: normalizedLeadPhoneModal,
+        asesor_nombre: updatedVendor.name,
+        fecha_hora_mx: null,
+      };
+      await sendLeadToMake(makePayload);
+      
       return res.status(200).json({
         success: true,
         inserted: true,
