@@ -4,7 +4,6 @@
   "description": "ConCasa - Sistema de round robin para distribución de leads",
   "main": "index.html",
   "scripts": {
-    "dev": "vercel dev",
     "build": "echo 'Static site - no build needed'",
     "start": "echo 'Static site - no start needed'",
     "lint": "eslint .",

@@ -52,29 +52,68 @@ module.exports = async function handler(req, res) {
     // Obtener cliente de Supabase
     const supabase = getSupabaseClient();
 
+    // Log inicial para debugging
+    console.log('[assign-vendor] Iniciando asignación de vendor');
+    console.log('[assign-vendor] Body recibido:', JSON.stringify(req.body || {}, null, 2));
+
     // Round Robin: Asignar siguiente vendor usando función PostgreSQL con lock
+    console.log('[assign-vendor] Llamando RPC assign_next_vendor con p_queue_id=1');
     const { data: rrRows, error: rrError } = await supabase.rpc('assign_next_vendor', { p_queue_id: 1 });
 
     if (rrError) {
-      console.error('[Error en assign_next_vendor]', rrError);
+      console.error('[assign-vendor] ERROR en assign_next_vendor RPC:', {
+        error: rrError,
+        message: rrError.message,
+        details: rrError.details,
+        hint: rrError.hint,
+        code: rrError.code
+      });
       return res.status(500).json({
         success: false,
-        error: 'Error al asignar vendedor'
+        error: 'Error al asignar vendedor',
+        debug: {
+          rpc_error: rrError.message,
+          rpc_code: rrError.code
+        }
       });
     }
 
     if (!rrRows || rrRows.length === 0) {
+      console.error('[assign-vendor] ERROR: RPC retornó array vacío o null');
       return res.status(500).json({
         success: false,
-        error: 'No se pudo asignar vendedor'
+        error: 'No se pudo asignar vendedor',
+        debug: {
+          rpc_response: rrRows
+        }
       });
     }
 
+    // Validar que la respuesta de la RPC tenga los campos requeridos
+    const rpcResult = rrRows[0];
+    if (!rpcResult || !rpcResult.vendor_id || !rpcResult.vendor_name || !rpcResult.vendor_phone) {
+      console.error('[assign-vendor] ERROR: RPC retornó datos incompletos:', rpcResult);
+      return res.status(500).json({
+        success: false,
+        error: 'Datos de vendedor incompletos',
+        debug: {
+          rpc_result: rpcResult
+        }
+      });
+    }
+
+    console.log('[assign-vendor] RPC exitosa:', {
+      vendor_id: rpcResult.vendor_id,
+      vendor_name: rpcResult.vendor_name,
+      vendor_phone: rpcResult.vendor_phone,
+      next_index: rpcResult.next_index
+    });
+
     // Crear objeto updatedVendor con los datos de la RPC
     const updatedVendor = {
-      id: rrRows[0].vendor_id,
-      name: rrRows[0].vendor_name,
-      phone: rrRows[0].vendor_phone,
+      id: rpcResult.vendor_id,
+      name: rpcResult.vendor_name,
+      phone: rpcResult.vendor_phone,
       lead_count: 0
     };
 
@@ -87,9 +126,17 @@ module.exports = async function handler(req, res) {
 
     if (!vendorDataError && vendorData) {
       updatedVendor.lead_count = vendorData.lead_count;
+    } else if (vendorDataError) {
+      console.warn('[assign-vendor] No se pudo obtener lead_count actualizado:', vendorDataError);
     }
 
-    console.log('[RR]', { next_index: rrRows[0].next_index, vendor_id: updatedVendor.id, vendor_name: updatedVendor.name });
+    console.log('[assign-vendor] Vendor asignado:', {
+      vendor_id: updatedVendor.id,
+      vendor_name: updatedVendor.name,
+      vendor_phone: updatedVendor.phone,
+      lead_count: updatedVendor.lead_count,
+      next_index: rpcResult.next_index
+    });
 
     // ============================================
     // 🎯 HISTORIAL: guardar asignación en lead_assignments
@@ -241,6 +288,19 @@ module.exports = async function handler(req, res) {
       };
     } else if (isWhatsappModal) {
       // Para whatsapp_modal: insertar en tabla whatsapp_contacts (NO en lead_assignments)
+      // Validar que updatedVendor tenga valores válidos antes de insertar
+      if (!updatedVendor.id || !updatedVendor.name || !updatedVendor.phone) {
+        console.error('[assign-vendor] ERROR: updatedVendor inválido antes de insertar whatsapp_contacts:', updatedVendor);
+        return res.status(500).json({
+          success: false,
+          inserted: false,
+          error: 'Error: datos de vendedor inválidos',
+          debug: {
+            updatedVendor: updatedVendor
+          }
+        });
+      }
+
       // Generar mensaje y URL de WhatsApp ANTES del insert
       const normalizedLeadNameModal = normalizeString(lead_name_modal);
       const normalizedLeadPhoneModal = normalizeWhatsapp(lead_phone_modal);
@@ -271,6 +331,14 @@ module.exports = async function handler(req, res) {
         whatsapp_link_url: whatsappUrlForInsert,
         // assigned_at usa DEFAULT NOW() en la tabla
       };
+
+      console.log('[assign-vendor] Insertando en whatsapp_contacts:', {
+        lead_name: normalizedLeadNameModal,
+        lead_phone: normalizedLeadPhoneModal,
+        vendor_id: whatsappContactsPayload.vendor_id,
+        vendor_name: whatsappContactsPayload.vendor_name,
+        vendor_phone: whatsappContactsPayload.vendor_phone
+      });
       
       // INSERT en whatsapp_contacts (tabla separada)
       const { data: insertedContact, error: contactInsertErr } = await supabase
@@ -280,7 +348,14 @@ module.exports = async function handler(req, res) {
         .single();
       
       if (contactInsertErr) {
-        console.error('[assign-vendor] whatsapp_contacts insert error', contactInsertErr);
+        console.error('[assign-vendor] ERROR al insertar en whatsapp_contacts:', {
+          error: contactInsertErr,
+          message: contactInsertErr.message,
+          details: contactInsertErr.details,
+          hint: contactInsertErr.hint,
+          code: contactInsertErr.code,
+          payload: whatsappContactsPayload
+        });
         return res.status(500).json({
           success: false,
           inserted: false,
@@ -296,12 +371,22 @@ module.exports = async function handler(req, res) {
             name: updatedVendor.name,
             phone: updatedVendor.phone,
             lead_count: updatedVendor.lead_count
+          },
+          debug: {
+            payload_vendor_id: whatsappContactsPayload.vendor_id,
+            payload_vendor_name: whatsappContactsPayload.vendor_name,
+            payload_vendor_phone: whatsappContactsPayload.vendor_phone
           }
         });
       }
       
       // INSERT exitoso en whatsapp_contacts
-      console.log(`[assign-vendor] whatsapp_contacts insert OK, id=${insertedContact.id}`);
+      console.log('[assign-vendor] whatsapp_contacts insert OK:', {
+        contact_id: insertedContact.id,
+        vendor_id: updatedVendor.id,
+        vendor_name: updatedVendor.name,
+        vendor_phone: updatedVendor.phone
+      });
       
       // Calcular fecha/hora en hora de Mexico City (formato: YYYY-MM-DD HH:mm:ss)
       const now = new Date();
@@ -458,10 +543,19 @@ module.exports = async function handler(req, res) {
 
   } catch (error) {
     // Manejo de errores inesperados
-    console.error('[Error inesperado en assign-vendor]', error);
+    console.error('[assign-vendor] ERROR INESPERADO:', {
+      error: error,
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     return res.status(500).json({
       success: false,
-      error: 'Error interno del servidor al asignar vendedor'
+      error: 'Error interno del servidor al asignar vendedor',
+      debug: {
+        error_message: error.message,
+        error_name: error.name
+      }
     });
   }
 };

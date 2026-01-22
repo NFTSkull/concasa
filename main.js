@@ -165,9 +165,18 @@ const assignVendor = async (formData = null) => {
       throw new Error(data.error || "Respuesta inválida del servidor");
     }
   } catch (error) {
-    console.error("[Error asignando vendedor]", error);
-    // Retornar número por defecto si falla
-    return DEFAULT_WHATSAPP_NUMBER;
+    console.error("[assignVendor] ERROR:", {
+      error: error,
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      response_status: error.response?.status,
+      response_data: error.response?.data
+    });
+    // ⚠️ IMPORTANTE: NO retornar fallback silencioso
+    // El código que llama debe manejar el error explícitamente
+    // Retornar null para indicar fallo explícito (NO insertar lead)
+    return null;
   }
 };
 
@@ -315,18 +324,26 @@ const updateWhatsappLinks = () => {
     // Fallback href (por si JS falla)
     link.href = withWhatsappUrl(DEFAULT_MESSAGE, DEFAULT_WHATSAPP_NUMBER);
 
+    // Remover listeners previos si existen (evitar duplicados)
+    const newLink = link.cloneNode(true);
+    link.parentNode?.replaceChild(newLink, link);
+    const cleanLink = newLink;
+
     // Interceptar click para TODOS los botones de WhatsApp
-    link.addEventListener("click", (e) => {
+    cleanLink.addEventListener("click", (e) => {
+      // Prevenir navegación doble: detener propagación inmediatamente
       e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
       
       // Obtener origen desde data-origin (obligatorio en cada link)
-      const origin = link.getAttribute("data-origin") || "unknown";
+      const origin = cleanLink.getAttribute("data-origin") || "unknown";
       const landingPath = window.location.pathname + window.location.search;
       
       // Guardar datos pendientes
       pendingWhatsAppData = {
         origin,
-        element: link,
+        element: cleanLink,
         landingPath,
       };
       
@@ -375,9 +392,18 @@ const initWhatsappModal = () => {
     }
   });
   
+  // Bandera para evitar múltiples aperturas de WhatsApp
+  let isOpeningWhatsApp = false;
+  
   // Manejar submit del formulario
   whatsappModalForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    
+    // Prevenir doble submit si ya se está procesando
+    if (isOpeningWhatsApp) {
+      console.log("[WA MODAL] Ya se está procesando, ignorando submit duplicado");
+      return;
+    }
     
     const validation = validateWhatsappModalForm();
     if (!validation.isValid) {
@@ -394,6 +420,9 @@ const initWhatsappModal = () => {
       submitBtn.disabled = true;
       submitBtn.textContent = "Enviando...";
     }
+    
+    // Marcar que se está procesando
+    isOpeningWhatsApp = true;
     
     // Construir payload para el API
     const payload = {
@@ -418,11 +447,19 @@ const initWhatsappModal = () => {
       let data;
       try {
         data = await response.json();
-      } catch {
+      } catch (parseError) {
+        console.error("[WA MODAL] ERROR al parsear respuesta JSON:", parseError);
+        const responseText = await response.text().catch(() => "");
+        console.error("[WA MODAL] Response text:", responseText);
         data = { success: false, error: "Error al procesar respuesta del servidor" };
       }
       
-      console.log("[WA MODAL] api response ->", data);
+      console.log("[WA MODAL] API response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        data: data
+      });
       
       // Verificar condición de éxito ESTRICTA
       if (response.ok && data.success === true && data.inserted === true && data.whatsapp_url) {
@@ -456,10 +493,19 @@ const initWhatsappModal = () => {
         // Pequeño delay para que el usuario vea el mensaje de redirección
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // (B) ABRIR WHATSAPP
-        const waWindow = window.open(data.whatsapp_url, "_blank", "noopener,noreferrer");
-        if (!waWindow) {
-          // Si popup bloqueado, redirigir en la misma pestaña
+        // (B) ABRIR WHATSAPP (solo una vez)
+        try {
+          const waWindow = window.open(data.whatsapp_url, "_blank", "noopener,noreferrer");
+          if (!waWindow || waWindow.closed || typeof waWindow.closed === "undefined") {
+            // Si popup bloqueado o cerrado inmediatamente, redirigir en la misma pestaña
+            console.log("[WA MODAL] Popup bloqueado, redirigiendo en misma pestaña");
+            window.location.href = data.whatsapp_url;
+          } else {
+            console.log("[WA MODAL] WhatsApp abierto en nueva pestaña");
+          }
+        } catch (openError) {
+          // Si hay error al abrir, redirigir en la misma pestaña
+          console.error("[WA MODAL] Error al abrir popup:", openError);
           window.location.href = data.whatsapp_url;
         }
         
@@ -467,11 +513,20 @@ const initWhatsappModal = () => {
         toggleWhatsappModal(false);
         pendingWhatsAppData = null;
         whatsappModalForm.reset();
+        isOpeningWhatsApp = false;
         
       } else {
         // Error: mostrar mensaje en el modal, NO abrir WhatsApp, NO disparar evento
         const errorMsg = data.error || "No se pudo guardar, intenta de nuevo.";
-        console.log("[WA MODAL] failed ->", errorMsg);
+        console.error("[WA MODAL] ERROR - No se insertó lead:", {
+          response_status: response.status,
+          response_ok: response.ok,
+          data_success: data.success,
+          data_inserted: data.inserted,
+          data_error: data.error,
+          data_debug: data.debug,
+          data_vendor: data.vendor
+        });
         showWhatsappModalError("wa-whatsapp", errorMsg);
         
         // Restaurar subtítulo original
@@ -479,11 +534,19 @@ const initWhatsappModal = () => {
         if (modalSubtitle) {
           modalSubtitle.textContent = "Ingresa tu nombre y WhatsApp para que un asesor te atienda de inmediato.";
         }
+        
+        // Resetear bandera para permitir reintento
+        isOpeningWhatsApp = false;
       }
       
     } catch (fetchError) {
       // Error de red
-      console.error("[WA MODAL] fetch error ->", fetchError);
+      console.error("[WA MODAL] ERROR de red/fetch:", {
+        error: fetchError,
+        message: fetchError.message,
+        name: fetchError.name,
+        stack: fetchError.stack
+      });
       showWhatsappModalError("wa-whatsapp", "Error de conexión. Intenta de nuevo.");
       
       // Restaurar subtítulo original
@@ -491,6 +554,9 @@ const initWhatsappModal = () => {
       if (modalSubtitle) {
         modalSubtitle.textContent = "Ingresa tu nombre y WhatsApp para que un asesor te atienda de inmediato.";
       }
+      
+      // Resetear bandera para permitir reintento
+      isOpeningWhatsApp = false;
     } finally {
       // Rehabilitar botón submit (solo si no fue exitoso, porque si fue exitoso ya se cerró el modal)
       if (submitBtn && whatsappModal && !whatsappModal.classList.contains("hidden")) {
@@ -583,6 +649,13 @@ const handleSubmit = async (event) => {
 
   // Asignar vendedor usando round robin y guardar datos del formulario
   const assignedPhone = await assignVendor(formDataForDB);
+  
+  // ⚠️ Si assignVendor falla, NO continuar (no insertar lead con fallback)
+  if (!assignedPhone) {
+    console.error("[handleSubmit] ERROR: No se pudo asignar vendedor, abortando");
+    showError("whatsapp", "Error al asignar asesor. Por favor intenta de nuevo.", formElement);
+    return;
+  }
 
   // Convertir fecha de YYYY-MM-DD a DD/MM/AAAA para el mensaje
   const formatDateForMessage = (dateStr) => {
