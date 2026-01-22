@@ -52,93 +52,44 @@ module.exports = async function handler(req, res) {
     // Obtener cliente de Supabase
     const supabase = getSupabaseClient();
 
-    // Paso 1: Obtener todos los vendedores activos ordenados por order_index
-    const { data: vendors, error: vendorsError } = await supabase
+    // Round Robin: Asignar siguiente vendor usando función PostgreSQL con lock
+    const { data: rrRows, error: rrError } = await supabase.rpc('assign_next_vendor', { p_queue_id: 1 });
+
+    if (rrError) {
+      console.error('[Error en assign_next_vendor]', rrError);
+      return res.status(500).json({
+        success: false,
+        error: 'Error al asignar vendedor'
+      });
+    }
+
+    if (!rrRows || rrRows.length === 0) {
+      return res.status(500).json({
+        success: false,
+        error: 'No se pudo asignar vendedor'
+      });
+    }
+
+    // Crear objeto updatedVendor con los datos de la RPC
+    const updatedVendor = {
+      id: rrRows[0].vendor_id,
+      name: rrRows[0].vendor_name,
+      phone: rrRows[0].vendor_phone,
+      lead_count: 0
+    };
+
+    // Obtener lead_count actualizado después del incremento en la función SQL
+    const { data: vendorData, error: vendorDataError } = await supabase
       .from('vendors')
-      .select('*')
-      .eq('is_active', true)
-      .order('order_index', { ascending: true });
-
-    if (vendorsError) {
-      console.error('[Error obteniendo vendedores]', vendorsError);
-      return res.status(500).json({
-        success: false,
-        error: 'Error al obtener lista de vendedores'
-      });
-    }
-
-    // Validar que hay vendedores disponibles
-    if (!vendors || vendors.length === 0) {
-      return res.status(500).json({
-        success: false,
-        error: 'No hay vendedores disponibles en la base de datos'
-      });
-    }
-
-    const totalVendors = vendors.length;
-
-    // Paso 2: Leer el estado actual del queue (last_index)
-    const { data: queueState, error: queueError } = await supabase
-      .from('queue_state')
-      .select('last_index')
-      .eq('id', 1)
+      .select('lead_count')
+      .eq('id', updatedVendor.id)
       .single();
 
-    if (queueError && queueError.code !== 'PGRST116') {
-      // PGRST116 = no se encontró el registro, pero eso está bien (usaremos -1)
-      console.error('[Error obteniendo queue_state]', queueError);
-      return res.status(500).json({
-        success: false,
-        error: 'Error al leer estado del queue'
-      });
+    if (!vendorDataError && vendorData) {
+      updatedVendor.lead_count = vendorData.lead_count;
     }
 
-    // Si no existe el registro, asumir last_index = -1
-    const lastIndex = queueState?.last_index ?? -1;
-
-    // Paso 3: Calcular el siguiente índice usando round robin
-    // lastIndex = -1 significa que es el primer lead, asignamos al índice 0
-    const nextIndex = (lastIndex + 1) % totalVendors;
-    const assignedVendor = vendors[nextIndex];
-
-    // Paso 4: Actualizar el estado del queue y el contador del vendedor
-    // Usamos una transacción implícita con múltiples updates
-
-    // 4a. Actualizar queue_state.last_index
-    const { error: updateQueueError } = await supabase
-      .from('queue_state')
-      .upsert({
-        id: 1,
-        last_index: nextIndex
-      }, {
-        onConflict: 'id'
-      });
-
-    if (updateQueueError) {
-      console.error('[Error actualizando queue_state]', updateQueueError);
-      return res.status(500).json({
-        success: false,
-        error: 'Error al actualizar estado del queue'
-      });
-    }
-
-    // 4b. Incrementar lead_count del vendedor asignado
-    const { data: updatedVendor, error: updateVendorError } = await supabase
-      .from('vendors')
-      .update({
-        lead_count: assignedVendor.lead_count + 1
-      })
-      .eq('id', assignedVendor.id)
-      .select()
-      .single();
-
-    if (updateVendorError) {
-      console.error('[Error actualizando lead_count]', updateVendorError);
-      return res.status(500).json({
-        success: false,
-        error: 'Error al actualizar contador de leads'
-      });
-    }
+    console.log('[RR]', { next_index: rrRows[0].next_index, vendor_id: updatedVendor.id, vendor_name: updatedVendor.name });
 
     // ============================================
     // 🎯 HISTORIAL: guardar asignación en lead_assignments
@@ -435,8 +386,8 @@ module.exports = async function handler(req, res) {
 
     // Paso 5: Log de la asignación (para debugging)
     console.log(
-      `[Round Robin] Lead asignado a: ${assignedVendor.name} ` +
-      `(${assignedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
+      `[Round Robin] Lead asignado a: ${updatedVendor.name} ` +
+      `(${updatedVendor.phone}) - Total leads: ${updatedVendor.lead_count}`
     );
 
     // Generar whatsapp_url con mensaje personalizado para form_submit
