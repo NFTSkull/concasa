@@ -303,12 +303,27 @@ module.exports = async function handler(req, res) {
       // INSERT exitoso en whatsapp_contacts
       console.log(`[assign-vendor] whatsapp_contacts insert OK, id=${insertedContact.id}`);
       
+      // Calcular fecha/hora en hora de Mexico City (formato: YYYY-MM-DD HH:mm:ss)
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Mexico_City',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      const parts = formatter.formatToParts(now);
+      const fechaHoraMxFormatted = `${parts.find(p => p.type === 'year').value}-${parts.find(p => p.type === 'month').value}-${parts.find(p => p.type === 'day').value} ${parts.find(p => p.type === 'hour').value}:${parts.find(p => p.type === 'minute').value}:${parts.find(p => p.type === 'second').value}`;
+      
       // Enviar a Make webhook (no bloquea si falla)
       const makePayload = {
         cliente_nombre: normalizedLeadNameModal,
         cliente_telefono: normalizedLeadPhoneModal,
         asesor_nombre: updatedVendor.name,
-        fecha_hora_mx: null,
+        fecha_hora_mx: fechaHoraMxFormatted,
       };
       await sendLeadToMake(makePayload);
       
